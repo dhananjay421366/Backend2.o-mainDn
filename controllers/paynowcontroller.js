@@ -1,26 +1,21 @@
 import { CFApp, CFAppPayment, CFCard, CFCardPayment, CFConfig, CFCustomerDetails, CFEnvironment, CFNetbanking, CFOrderPayRequest, CFOrderRequest, CFPaymentGateway, CFPaymentMethod, CFRefundRequest, CFUPI, CFUPIPayment } from "cashfree-pg-sdk-nodejs";
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import Razorpay from 'razorpay';
-import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
+import { v4 as uuidv4 } from 'uuid'; 
 import client from '../config.js';
-import uniqid from 'uniqid'; // ES6 import
+import uniqid from 'uniqid'; 
 import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
 import { selectedGateway } from "../app.js";
+import { instance } from "../config2.js";
 dotenv.config();
+
 // Initialize Cashfree configuration with the environment and credentials
 const cfConfig = new CFConfig(
-  CFEnvironment.SANDBOX, // Environment, change to PRODUCTION for live environment
-  "2023-08-01", // API Version
-  process.env.CLIENT_ID, // Client ID from environment variable
-  process.env.CLIENT_SECRET // Client Secret from environment variable
+  CFEnvironment.SANDBOX, 
+  "2023-08-01",
+  process.env.CLIENT_ID, 
+  process.env.CLIENT_SECRET 
 );
-
-const instance = new Razorpay({
-  key_id: process.env.CF_CLIENT_ID, // Replace with environment variables for security
-  key_secret: process.env.CF_CLIENT_SECRET
-});
-// Controller functions
 
 // Create an order
 export const createOrderCashfree = async (req, res) => {
@@ -80,7 +75,7 @@ export const paybycard = async (req, res) => {
 
     const apiInstance = new CFPaymentGateway();
     const response = await apiInstance.orderSessionsPay(cfConfig, orderPayRequest);
-
+    console.log(response);
     res.status(200).json(response);
 
 
@@ -508,10 +503,6 @@ export const verifyPayment = async (req, res) => {
     });
   }
 };
-
-
-
-
 export const processRefund = async (req, res) => {
   try {
     const { paymentId, refundAmount } = req.body;
