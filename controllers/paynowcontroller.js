@@ -75,7 +75,6 @@ export const paybycard = async (req, res) => {
 
     const apiInstance = new CFPaymentGateway();
     const response = await apiInstance.orderSessionsPay(cfConfig, orderPayRequest);
-    console.log(response);
     res.status(200).json(response);
 
 
