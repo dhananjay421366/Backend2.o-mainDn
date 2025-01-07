@@ -15,7 +15,7 @@ router.post('/forgot_password', forgot_password1); //doubt
 router.post('/reset_password/:id/:token');//doubt
 router.get('/profile', authenticate, getProfile);
 router.put(
-    '/profile',
+    '/profile/update',
     authenticate, // Ensures the user is authenticated
     upload.fields([
         {

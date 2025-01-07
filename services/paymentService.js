@@ -1,8 +1,8 @@
 import client from '../config.js';
 import Razorpay from 'razorpay';
 const instance = new Razorpay({
-  key_id: 'rzp_test_v9Qzz296oIxlmW', // Replace with environment variables for security
-  key_secret: 'QEQ5f4BfTH7fxhE1iXSkrK1y'
+  key_id: process.env.CF_CLIENT_ID, // Replace with environment variables for security
+  key_secret: process.env.CF_CLIENT_SECRET
 });
 
 export const processPayment = async (paymentData) => {

@@ -10,13 +10,18 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 // User Registration
 const saltRounds = 10
 export const register = async (req, res) => {
-  const { email, phone_number, password, FirstName , LastName } = req.body;
+  const { email, phone_number, password, FirstName, LastName } = req.body;
 
   try {
     // Validate input data
     if (!email || !password || !FirstName) {
       return res.status(400).json({ error: 'Invalid input data' });
     }
+    // Validate phone number length
+    if (!/^\d{10}$/.test(phone_number)) {
+      return res.status(400).json({ error: 'Invalid phone number: Must be exactly 10 digits' });
+    }
+
 
     // Check if the email or phone number already exists
     const existingUser = await client.query(
@@ -37,7 +42,7 @@ export const register = async (req, res) => {
       'INSERT INTO users (email, phone_number, password_hash, user_name, verification_token) VALUES ($1, $2, $3, $4, $5)',
       [email, phone_number, password_hash, FirstName, verification_token]
     );
-    
+
 
     // Trigger Notification Service to send verification email/SMS
     const verification_endpoint = `${process.env.BACKEND_URL}/users/verify/${verification_token}`
@@ -277,8 +282,8 @@ const forgot_password = async (email) => {
   else {
     const user = result.rows[0];
     const key = process.env.SECRET_KEY + user.password_hash;
-    const token = jwt.sign(user.email, 
-      
+    const token = jwt.sign(user.email,
+
     );//add here timer for token expires
     const link = `http://localhost:5000/users/reset_password/${user.id}/${token}`;
     return link;

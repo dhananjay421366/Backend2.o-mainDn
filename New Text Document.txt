@@ -148,6 +148,7 @@ CREATE TABLE payments (
     amount NUMERIC NOT NULL,
     status VARCHAR(20) DEFAULT 'pending',
     payment_method VARCHAR(50) NOT NULL,
+    payment_Gateway VARCHAR(50) NOT NULL,
     transaction_id VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

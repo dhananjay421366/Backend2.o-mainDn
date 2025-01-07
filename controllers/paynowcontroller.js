@@ -1,11 +1,13 @@
-import { CFCustomerDetails, CFOrderRequest, CFConfig, CFPaymentGateway, CFEnvironment, CFCard, CFCardPayment, CFOrderPayRequest, CFUPI, CFUPIPayment, CFNetbanking, CFPaymentMethod, CFApp, CFRefundRequest, CFAppPayment } from "cashfree-pg-sdk-nodejs";
-import cookieParser from "cookie-parser";
-import client from '../config.js';
-import dotenv from 'dotenv'
+import { CFApp, CFAppPayment, CFCard, CFCardPayment, CFConfig, CFCustomerDetails, CFEnvironment, CFNetbanking, CFOrderPayRequest, CFOrderRequest, CFPaymentGateway, CFPaymentMethod, CFRefundRequest, CFUPI, CFUPIPayment } from "cashfree-pg-sdk-nodejs";
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+import Razorpay from 'razorpay';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID library for generating unique IDs
-
-dotenv.config();
+import client from '../config.js';
+import uniqid from 'uniqid'; // ES6 import
 import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
+import { selectedGateway } from "../app.js";
+dotenv.config();
 // Initialize Cashfree configuration with the environment and credentials
 const cfConfig = new CFConfig(
   CFEnvironment.SANDBOX, // Environment, change to PRODUCTION for live environment
@@ -14,11 +16,9 @@ const cfConfig = new CFConfig(
   process.env.CLIENT_SECRET // Client Secret from environment variable
 );
 
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
 const instance = new Razorpay({
-  key_id: 'rzp_test_v9Qzz296oIxlmW', // Replace with environment variables for security
-  key_secret: 'QEQ5f4BfTH7fxhE1iXSkrK1y'
+  key_id: process.env.CF_CLIENT_ID, // Replace with environment variables for security
+  key_secret: process.env.CF_CLIENT_SECRET
 });
 // Controller functions
 
@@ -360,7 +360,6 @@ export const checkPaymentStatus = async (req, res) => {
 
 
 
-// Create an order
 
 // Create an order
 export const createOrder = async (req, res) => {
@@ -375,6 +374,8 @@ export const createOrder = async (req, res) => {
       Mobile_No = 7350304620,
       bookingId = 10,
     } = req.body;
+    console.log(selectedGateway);
+    console.log(ticketId);
 
     const options = {
       amount: (amount || 1) * 100, // Razorpay requires the amount in paisa
@@ -393,10 +394,6 @@ export const createOrder = async (req, res) => {
           error: err.message,
         });
       }
-
-      // Log the generated ticket ID and Razorpay order ID
-      console.log(`Generated ticketId: ${ticketId}, Razorpay orderId: ${order.id}`);
-
       res.render("checkout", {
         amount: order.amount,
         order_id: order.id, // Razorpay order ID
@@ -457,8 +454,8 @@ export const verifyPayment = async (req, res) => {
     // Insert payment details into the database
     const paymentResult = await client.query(
       `INSERT INTO payments 
-        (booking_id, amount, status, payment_method, transaction_id) 
-        VALUES ($1, $2, $3, $4, $5) 
+        (booking_id, amount, status, payment_method, transaction_id,payment_gateway) 
+        VALUES ($1, $2, $3, $4, $5,$6) 
         RETURNING *`,
       [
         bookingId,
@@ -466,8 +463,10 @@ export const verifyPayment = async (req, res) => {
         paymentDetails.status,
         paymentDetails.method,
         paymentDetails.id,
+        'razorpay'
       ]
     );
+    console.log(paymentResult, "Updated payment details ");
 
     // Update the booking status
     const bookingUpdate = await client.query(
