@@ -292,6 +292,14 @@ app.use('/api/transfer', transferRoutes);
 // Dynamic payment gateway routes
 const dynamicRoutes = {};
 
+const restrictToSelectedGateway = (gateway) => (req, res, next) => {
+  if (selectedGateway !== gateway) {
+    return res
+      .status(403)
+      .json({ error: `Access denied. Current gateway is ${selectedGateway}` });
+  }
+  next();
+};
 
 // Set up routes based on the selected gateway and mode
 const setupPaymentGatewayRoutes = () => {
@@ -306,13 +314,19 @@ const setupPaymentGatewayRoutes = () => {
   if (selectedGateway === 'cashfree') {
     dynamicRoutes.cashfree = app.use(
       `/cashfree/${gatewayMode}`,
+      restrictToSelectedGateway('cashfree'),
       cashfreeRoutes
     );
   } else if (selectedGateway === 'razorpay') {
-    dynamicRoutes.razorpay = app.use('/checkout', razorpayRoutes);
+    dynamicRoutes.razorpay = app.use(
+      '/checkout',
+      restrictToSelectedGateway('razorpay'),
+      razorpayRoutes
+    );
   } else if (selectedGateway === 'phonepay') {
     dynamicRoutes.phonepay = app.use(
       `/phone-pay/${gatewayMode}`,
+      restrictToSelectedGateway('phonepay'),
       PhonePayRoutes
     );
   }
@@ -323,7 +337,6 @@ setupPaymentGatewayRoutes();
 
 // Toggle payment gateway
 const togglePaymentGateway = (req, res) => {
-
   // Toggle the selected gateway
   if (selectedGateway === 'cashfree') {
     selectedGateway = 'razorpay';
