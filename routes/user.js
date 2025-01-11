@@ -1,14 +1,12 @@
 import express from 'express';
 import { register, login, logout, getProfile, updateProfile, verifyEmail, forgot_password1 } from '../controllers/userController.js';
 import { authenticate, authenticate_user } from '../middlewares/authMiddleware.js';
-import { sendOtp } from '../services/authService.js';
 import { upload } from '../middlewares/multer.middleware.js';
 
 const router = express.Router();
 
 router.post('/register', register);
 router.get('/verify/:token', verifyEmail);//some doubt
-router.post('/send-otp', sendOtp)
 router.post('/login', login);
 router.get('/logout', logout);//doubt
 router.post('/forgot_password', forgot_password1); //doubt
