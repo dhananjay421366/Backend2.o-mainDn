@@ -276,7 +276,7 @@ export const refundinformation = async (req, res) => {
 
 }
 
-//its  not   use yet
+//its not use yet
 export const paylater = async () => {
   const data = req.body;
   try {
@@ -308,7 +308,7 @@ export const checkPaymentStatus = async (req, res) => {
   try {
     const orderId = req.cookies?.order_id; // Retrieve the order ID from cookies
     console.log("Order ID:", orderId);
-
+    console.log(res);
     // Ensure orderId is present
     if (!orderId) {
       return res.status(400).json({ message: "Order ID is missing from cookies" });
@@ -316,12 +316,40 @@ export const checkPaymentStatus = async (req, res) => {
 
     const apiInstance = new CFPaymentGateway();
     const response = await apiInstance.getOrder(cfConfig, orderId);
+<<<<<<< HEAD
 
     // Log response for debugging
     console.log("API Response:", response);
 
     // Ensure response and cfOrder exist
     if (!response || !response.cfOrder) {
+=======
+    console.log("API Response:", response);
+    // Check if cfOrder exists in the response
+    if (response?.cfOrder) {
+      const { orderStatus, payments } = response.cfOrder;
+      const paymentMethods = payments ? payments.map(payment => payment.paymentMethod) : null; // Extract payment methods
+      
+      // Log payments to check structure
+      console.log("Payments Data:", payments);
+
+      // Check if the payment was successful
+      if (orderStatus === "PAID") {
+        return res.status(200).json({
+          message: "Payment was successful",
+          orderDetails: response.cfOrder,
+          paymentMethods: paymentMethods || "No payment methods found", // Send payment methods if available
+        });
+      } else {
+        return res.status(200).json({
+          message: "Payment status is not PAID",
+          orderStatus,
+          payments: payments || "No payment data available",
+          paymentMethods: paymentMethods || "No payment methods found",
+        });
+      }
+    } else {
+>>>>>>> e90e4c3130b8fec6765540f868a98d886ea58ddf
       return res.status(404).json({ message: "Order not found in the system" });
     }
 
@@ -360,12 +388,6 @@ export const checkPaymentStatus = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch payment status", error: error.message });
   }
 };
-
-
-
-
-
-
 
 // Create an order
 export const createOrder = async (req, res) => {
@@ -501,8 +523,15 @@ export const verifyPayment = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message || "Something went wrong" });
   }
 };
+<<<<<<< HEAD
 
 
+=======
+<<<<<<< HEAD
+
+=======
+>>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
+>>>>>>> e90e4c3130b8fec6765540f868a98d886ea58ddf
 export const processRefund = async (req, res) => {
   try {
     const { paymentId, refundAmount } = req.body;
@@ -553,9 +582,6 @@ export const processRefund = async (req, res) => {
     });
   }
 };
-
-
-
 
 // PhonePe Controller
 export const PhonePay = async (req, res) => {

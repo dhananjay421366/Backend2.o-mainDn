@@ -52,6 +52,18 @@ app.use('/checkout', razorpayRoutes);
 // Dynamic payment gateway routes
 const dynamicRoutes = {};
 
+<<<<<<< HEAD
+const restrictToSelectedGateway = (gateway) => (req, res, next) => {
+  if (selectedGateway !== gateway) {
+    return res
+      .status(403)
+      .json({ error: `Access denied. Current gateway is ${selectedGateway}` });
+  }
+  next();
+};
+
+=======
+>>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
 // Set up routes based on the selected gateway and mode
 const setupPaymentGatewayRoutes = () => {
   // Remove existing dynamic routes
@@ -60,6 +72,26 @@ const setupPaymentGatewayRoutes = () => {
   });
 
   // Add the selected gateway's routes based on the mode
+<<<<<<< HEAD
+  if (selectedGateway === 'cashfree') {
+    dynamicRoutes.cashfree = app.use(
+      `/cashfree/${gatewayMode}`,
+      restrictToSelectedGateway('cashfree'),
+      cashfreeRoutes
+    );
+  } else if (selectedGateway === 'razorpay') {
+    dynamicRoutes.razorpay = app.use(
+      '/checkout',
+      restrictToSelectedGateway('razorpay'),
+      razorpayRoutes
+    );
+  } else if (selectedGateway === 'phonepay') {
+    dynamicRoutes.phonepay = app.use(
+      `/phone-pay/${gatewayMode}`,
+      restrictToSelectedGateway('phonepay'),
+      PhonePayRoutes
+    );
+=======
   switch (selectedGateway) {
     case 'cashfree':
       dynamicRoutes.cashfree = app.use(`/cashfree/${gatewayMode}`, cashfreeRoutes);
@@ -72,6 +104,7 @@ const setupPaymentGatewayRoutes = () => {
       break;
     default:
       break;
+>>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
   }
 };
 
@@ -80,9 +113,20 @@ setupPaymentGatewayRoutes();
 
 // Toggle payment gateway
 const togglePaymentGateway = (req, res) => {
+<<<<<<< HEAD
+  // Toggle the selected gateway
+  if (selectedGateway === 'cashfree') {
+    selectedGateway = 'razorpay';
+  } else if (selectedGateway === 'razorpay') {
+    selectedGateway = 'phonepay';
+  } else if (selectedGateway === 'phonepay') {
+    selectedGateway = 'cashfree';
+  }
+=======
   const gateways = ['cashfree', 'razorpay', 'phonepay'];
   const currentIndex = gateways.indexOf(selectedGateway);
   selectedGateway = gateways[(currentIndex + 1) % gateways.length];
+>>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
 
   // Reconfigure the routes based on the new selection
   setupPaymentGatewayRoutes();
