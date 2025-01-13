@@ -26,7 +26,7 @@ export const register = async (req, res) => {
 
     // Check if the email or phone number already exists
     const existingUser = await client.query(
-      'SELECT id FROM users WHERE email = $1 OR phone_number = $2',
+      'SELECT user_id FROM users WHERE email = $1 OR phone_number = $2',
       [email, phone_number]
     );
 
@@ -47,7 +47,7 @@ export const register = async (req, res) => {
     // Trigger Notification Service to send verification email/SMS
     const verification_endpoint = `${process.env.BACKEND_URL}/users/verify/${verification_token}`;
     await sendVerificationEmail(email, verification_endpoint);
-    
+
     return res.status(201).json({ message: 'User registered successfully', verification_endpoint });
   } catch (err) {
     console.error(err);
@@ -58,7 +58,7 @@ export const register = async (req, res) => {
 // Email Verification
 export const verifyEmail = async (req, res) => {
   const token = req.params.token;
-  
+
   try {
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     const email = decoded.email;
@@ -77,7 +77,7 @@ export const verifyEmail = async (req, res) => {
 // Login User
 export const login = async (req, res) => {
   const { email, password } = req.body;
-
+  console.log(req.user);
   try {
     // Validate input data
     if (!email || !password) {
@@ -103,17 +103,17 @@ export const login = async (req, res) => {
     if (!match) return res.status(403).json({ error: 'Authentication failed' });
 
     // Generate JWT token
-    const token = jwt.sign({ id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1d' });
+    const token = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1d' });
     res.cookie('token', token);
 
     // Update last login timestamp
-    await client.query('UPDATE users SET updated_at = NOW() WHERE id = $1', [user.id]);
+    await client.query('UPDATE users SET updated_at = NOW() WHERE user_id = $1', [user.user_id]);
 
     return res.json({
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        user_id: user.user_id,
         email: user.email,
         phone_number: user.phone_number,
         user_name: user.user_name,
@@ -140,7 +140,7 @@ export const logout = async (req, res) => {
 // Forgot Password
 export const forgot_password1 = async (req, res) => {
   const { email } = req.body;
-  
+
   try {
     const link = await forgot_password(email);
     if (link === 'User not found') {
@@ -155,13 +155,13 @@ export const forgot_password1 = async (req, res) => {
   }
 };
 
- // Reset Password
+// Reset Password
 export const reset_password = async (req, res) => {
   const { password } = req.body;
-  const { id, token } = req.params;
-  
+  const { user_id, token } = req.params;
+
   try {
-    await verify_token_reset_password(id, token, password);
+    await verify_token_reset_password(user_id, token, password);
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error(error);
@@ -172,10 +172,10 @@ export const reset_password = async (req, res) => {
 // Get User Profile
 export const getProfile = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.user_id;
     if (!userId) return res.status(401).json({ error: 'Unauthorized: User ID missing.' });
 
-    const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
+    const userResult = await client.query('SELECT * FROM users WHERE user_id = $1', [userId]);
     const user = userResult.rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -189,7 +189,7 @@ export const getProfile = async (req, res) => {
 
 // Update User Profile
 export const updateProfile = async (req, res) => {
-  const userId = req.user?.id;
+  const userId = req.user?.user_id;
   const { name, phone_number, email } = req.body;
 
   try {
@@ -248,13 +248,13 @@ const forgot_password = async (email) => {
   const key = process.env.SECRET_KEY + user.password_hash;
   const token = jwt.sign({ email: user.email }, key, { expiresIn: '1h' });
   const link = `${process.env.BACKEND_URL}/users/reset_password/${user.id}/${token}`;
-  
+
   return link;
 };
 
 // Reset Password Verification Helper
-const verify_token_reset_password = async (id, token, password) => {
-  const result = await client.query('SELECT * FROM users WHERE id = $1', [id]);
+const verify_token_reset_password = async (user_id, token, password) => {
+  const result = await client.query('SELECT * FROM users WHERE user_id = $1', [user_id]);
   const user = result.rows[0];
   const key = process.env.SECRET_KEY + user.password_hash;
 
@@ -262,7 +262,7 @@ const verify_token_reset_password = async (id, token, password) => {
     const verification = await jwt.verify(token, key);
     if (verification) {
       const hash = await bcrypt.hash(password, saltRounds);
-      await client.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
+      await client.query('UPDATE users SET password_hash = $1 WHERE user_id = $2', [hash, user_id]);
     }
   } catch (error) {
     throw new Error('Invalid or expired token');

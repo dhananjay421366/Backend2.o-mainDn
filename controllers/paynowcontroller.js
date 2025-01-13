@@ -1,20 +1,21 @@
 import { CFApp, CFAppPayment, CFCard, CFCardPayment, CFConfig, CFCustomerDetails, CFEnvironment, CFNetbanking, CFOrderPayRequest, CFOrderRequest, CFPaymentGateway, CFPaymentMethod, CFRefundRequest, CFUPI, CFUPIPayment } from "cashfree-pg-sdk-nodejs";
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid'; 
+import { v4 as uuidv4 } from 'uuid';
 import client from '../config.js';
-import uniqid from 'uniqid'; 
+import uniqid from 'uniqid';
 import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
 import { selectedGateway } from "../app.js";
 import { instance } from "../config2.js";
+import { generateTicketId } from "../services/ticketService.js";
 dotenv.config();
 
 // Initialize Cashfree configuration with the environment and credentials
 const cfConfig = new CFConfig(
-  CFEnvironment.SANDBOX, 
+  CFEnvironment.SANDBOX,
   "2023-08-01",
-  process.env.CLIENT_ID, 
-  process.env.CLIENT_SECRET 
+  process.env.CLIENT_ID,
+  process.env.CLIENT_SECRET
 );
 
 // Create an order
@@ -303,7 +304,6 @@ export const paylater = async () => {
     console.log(e);
   }
 }
-
 export const checkPaymentStatus = async (req, res) => {
   try {
     const orderId = req.cookies?.order_id; // Retrieve the order ID from cookies
@@ -317,34 +317,46 @@ export const checkPaymentStatus = async (req, res) => {
     const apiInstance = new CFPaymentGateway();
     const response = await apiInstance.getOrder(cfConfig, orderId);
 
-    // Check if cfOrder exists in the response
-    if (response?.cfOrder) {
-      const { orderStatus, payments } = response.cfOrder;
-      const paymentMethods = payments ? payments.map(payment => payment.paymentMethod) : null; // Extract payment methods
+    // Log response for debugging
+    console.log("API Response:", response);
 
-      // Log payments to check structure
-      console.log("Payments Data:", payments);
-
-      // Check if the payment was successful
-      if (orderStatus === "PAID") {
-        return res.status(200).json({
-          message: "Payment was successful",
-          orderDetails: response.cfOrder,
-          paymentMethods: paymentMethods || "No payment methods found", // Send payment methods if available
-        });
-      } else {
-        return res.status(200).json({
-          message: "Payment status is not PAID",
-          orderStatus,
-          payments: payments || "No payment data available",
-          paymentMethods: paymentMethods || "No payment methods found",
-        });
-      }
-    } else {
+    // Ensure response and cfOrder exist
+    if (!response || !response.cfOrder) {
       return res.status(404).json({ message: "Order not found in the system" });
+    }
+
+    const { orderStatus, payments } = response.cfOrder;
+
+    // Check and extract payment methods
+    const paymentMethods = payments ? payments.map((payment) => payment.paymentMethod) : null;
+
+    // Log payments and payment methods for debugging
+    console.log("Payments Data:", payments);
+    console.log("Payment Methods Extracted:", paymentMethods);
+
+    // Check if the payment was successful
+    if (orderStatus === "PAID") {
+      return res.status(200).json({
+        message: "Payment was successful",
+        orderDetails: response.cfOrder,
+        paymentMethods: paymentMethods || "No payment methods found", // Send payment methods if available
+      });
+    } else {
+      return res.status(200).json({
+        message: "Payment status is not PAID",
+        orderStatus,
+        payments: payments || "No payment data available",
+        paymentMethods: paymentMethods || "No payment methods found",
+      });
     }
   } catch (error) {
     console.error("Error fetching payment status:", error);
+
+    // Handle errors gracefully
+    if (error instanceof TypeError) {
+      return res.status(500).json({ message: "Unexpected error in payment processing", error: error.message });
+    }
+
     res.status(500).json({ message: "Failed to fetch payment status", error: error.message });
   }
 };
@@ -366,7 +378,7 @@ export const createOrder = async (req, res) => {
       Fullname = "Dhananjay",
       Email = "nimbalkar@gmail.com",
       Mobile_No = 7350304620,
-      bookingId = 10,
+      bookingId = 19,
     } = req.body;
     console.log(selectedGateway);
     console.log(ticketId);
@@ -411,45 +423,40 @@ export const verifyPayment = async (req, res) => {
     const bookingId = req.cookies?.bookingId;
 
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing Razorpay payment details",
-      });
+      return res.status(400).json({ success: false, message: "Missing Razorpay payment details" });
     }
 
-    // Validate signature
+    // Validate payment signature
     const generatedSignature = crypto
       .createHmac("sha256", 'QEQ5f4BfTH7fxhE1iXSkrK1y') // Replace with your Razorpay secret key
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
     if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payment signature",
-      });
+      return res.status(400).json({ success: false, message: "Invalid payment signature" });
     }
 
     const paymentDetails = await checkPaymentStatusRazorpay(razorpay_payment_id);
-    console.log(paymentDetails, "this is payment details");
+    console.log("Payment details:", paymentDetails);
 
-    await client.query("BEGIN"); // Start a transaction
+    await client.query("BEGIN"); // Start transaction
 
-    const bookingExists = await client.query("SELECT id, event_id FROM bookings WHERE id = $1", [bookingId]);
+    // Check if booking exists
+    const bookingExists = await client.query(
+      "SELECT booking_id FROM bookings WHERE booking_id = $1",
+      [bookingId]
+    );
 
     if (bookingExists.rows.length === 0) {
       await client.query("ROLLBACK");
-      return res.status(400).json({
-        success: false,
-        message: "Invalid booking ID",
-      });
+      return res.status(400).json({ success: false, message: "Invalid booking ID" });
     }
 
-    // Insert payment details into the database
+    // Insert payment details
     const paymentResult = await client.query(
       `INSERT INTO payments 
-        (booking_id, amount, status, payment_method, transaction_id,payment_gateway) 
-        VALUES ($1, $2, $3, $4, $5,$6) 
+        (booking_id, amount, status, payment_method, transaction_id, payment_gateway) 
+        VALUES ($1, $2, $3, $4, $5, $6) 
         RETURNING *`,
       [
         bookingId,
@@ -457,51 +464,45 @@ export const verifyPayment = async (req, res) => {
         paymentDetails.status,
         paymentDetails.method,
         paymentDetails.id,
-        'razorpay'
+        "razorpay",
       ]
     );
-    console.log(paymentResult, "Updated payment details ");
 
-    // Update the booking status
+    // Update booking status
     const bookingUpdate = await client.query(
       `UPDATE bookings 
         SET status = $1, updated_at = CURRENT_TIMESTAMP 
-        WHERE id = $2 
+        WHERE booking_id = $2 
         RETURNING *`,
       ["confirmed", bookingId]
     );
 
-    // Update the ticket table with the razorpay_order_id as ticket_id and set the status to 'confirmed'
+    // Update the tickets' status for this booking ID
     const ticketUpdate = await client.query(
       `UPDATE tickets 
-        SET id = $1, status = 'confirmed'
-        WHERE booking_id = $2
+        SET status = 'confirmed' 
+        WHERE booking_id = $1 
         RETURNING *`,
-      [razorpay_order_id, bookingId]
+      [bookingId]
     );
 
-    // Log the updated ticket table
-    console.log("Updated ticket:", ticketUpdate.rows[0]);
-
-    await client.query("COMMIT"); // Commit the transaction
+    await client.query("COMMIT"); // Commit transaction
 
     return res.status(200).json({
       success: true,
       message: "Payment verified and booking updated successfully.",
       payment: paymentResult.rows[0],
       booking: bookingUpdate.rows[0],
-      ticket: ticketUpdate.rows[0],  // Returning the updated ticket details
+      tickets: ticketUpdate.rows, // Return all updated tickets
     });
   } catch (error) {
     console.error("Error in verifyPayment:", error);
     await client.query("ROLLBACK");
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Something went wrong",
-      error: error.stack,
-    });
+    return res.status(500).json({ success: false, message: error.message || "Something went wrong" });
   }
 };
+
+
 export const processRefund = async (req, res) => {
   try {
     const { paymentId, refundAmount } = req.body;

@@ -47,7 +47,7 @@ app.use('/api/verification', bankAccountVerificationRoutes);
 app.use('/api/transfer', transferRoutes);
 
 // Razorpay route is commented out, you can enable it if needed
-// app.use('/checkout', razorpayRoutes);
+app.use('/checkout', razorpayRoutes);
 
 // Dynamic payment gateway routes
 const dynamicRoutes = {};

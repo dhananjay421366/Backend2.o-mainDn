@@ -16,7 +16,7 @@ export const registerOrganizer = async (email, password, phonenumber, organizer_
     throw new Error('Email already exists');
   }
 
-  const verificationToken = jwt.sign({ id: existingUser.id, email: email }, process.env.SECRET_KEY, { expiresIn: '1d' });
+  const verificationToken = jwt.sign({ organizer_id: existingUser.organizer_id, email: email }, process.env.SECRET_KEY, { expiresIn: '1d' });
   const result = await client.query(
     'INSERT INTO organizers (email, password_hash, phonenumber, verification_token, organizer_name , Legal_Name) VALUES ($1, $2, $3, $4,$5, $6) RETURNING *',
     [email, hash, phonenumber, verificationToken, organizer_name, Legal_Name]
@@ -55,7 +55,7 @@ export const loginOrganizer = async (email, password) => {
     throw new Error('Email not verified');//what is throw here
   }
 
-  const token = jwt.sign({ id: organizer.id, email: organizer.email }, process.env.SECRET_KEY, {
+  const token = jwt.sign({ organizer_id: organizer.organizer_id, email: organizer.email }, process.env.SECRET_KEY, {
     expiresIn: '1d',
   });
   return token;
@@ -72,15 +72,18 @@ export const forgot_password = async (email) => {
     const organizer = result.rows[0];
     const key = secretKey + organizer.password_hash;
     const token = jwt.sign(organizer.email, key);//add here timer for token expires
-    const link = `http://localhost:5000/organizers/reset_password/${organizer.id}/${token}`;
+    const link = `http://localhost:5000/organizers/reset_password/${organizer.organizer_id}/${token}`;
     return link;
   }
 }
 // Verify Token and Reset Password Logic
-export const verify_token_reset_password = async (id, token, Newpassword) => {
+export const verify_token_reset_password = async (organizer_id, token, Newpassword) => {
   // Fetch organizer from the database
-  const result = await client.query('SELECT * FROM organizers WHERE id = $1', [id]);
+  console.log(organizer_id);
+  const result = await client.query('SELECT * FROM organizers WHERE organizer_id = $1', [organizer_id]);
+  console.log(result);
   const organizer = result.rows[0];
+  console.log(organizer);
 
   if (!organizer) {
     throw new Error('Organizer not found');
@@ -101,7 +104,7 @@ export const verify_token_reset_password = async (id, token, Newpassword) => {
 
     // If verification passes, hash the new password
     const hash = await bcrypt.hash(Newpassword, 10);
-    await client.query('UPDATE organizers SET password_hash = $1 WHERE id = $2', [hash, id]);
+    await client.query('UPDATE organizers SET password_hash = $1 WHERE organizer_id = $2', [hash, organizer_id]);
   } catch (err) {
     console.error('Token verification error:', err.message);
     throw new Error('Token verification failed');

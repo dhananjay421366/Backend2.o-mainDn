@@ -1,8 +1,8 @@
 import client from '../config.js';
 
-export const findOrganizerById = async (id) => {
+export const findOrganizerById = async (organizer_id) => {
   try {
-    const result = await client.query('SELECT * FROM organizers WHERE id = $1', [id]);
+    const result = await client.query('SELECT * FROM organizers WHERE organizer_id = $1', [organizer_id]);
     return result.rows[0]; // Return the organizer if found
   } catch (error) {
     console.error('Error finding organizer:', error.message);

@@ -64,6 +64,7 @@ export const verify = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
+    console.log(req.user);
     const { email, password } = req.body;
     const token = await loginOrganizer(email, password);
     if (token) {
@@ -87,13 +88,13 @@ export const logout = async (req, res) => {
 
 export const getOrganizerProfile = async (req, res) => {
   try {
-    const organizerId = req.user?.id;
+    const organizerId = req.user?.organizer_id;
     if (!organizerId) {
       return sendErrorResponse(res, 401, "Unauthorized: Organizer ID missing.");
     }
 
     const organizerResult = await client.query(
-      "SELECT * FROM organizers WHERE id = $1",
+      "SELECT * FROM organizers WHERE organizer_id = $1",
       [organizerId]
     );
     const organizer = organizerResult.rows[0];
@@ -110,7 +111,7 @@ export const getOrganizerProfile = async (req, res) => {
 };
 
 export const updateOrganizerProfile = async (req, res) => {
-  const organizerId = req.user?.id;
+  const organizerId = req.user?.organizer_id;
   const { name, phonenumber, email } = req.body;
 
   if (!organizerId)
@@ -145,7 +146,7 @@ export const updateOrganizerProfile = async (req, res) => {
         email = $3, 
         ${finalProfilePictureUrl ? "profile_picture = $4," : ""} 
         updated_at = NOW()
-      WHERE id = $5
+      WHERE organizer_id = $5
     `;
     const updateValues = finalProfilePictureUrl
       ? [name, phonenumber, email, finalProfilePictureUrl, organizerId]
@@ -154,7 +155,7 @@ export const updateOrganizerProfile = async (req, res) => {
     await client.query(updateQuery, updateValues);
 
     const updatedOrganizerResult = await client.query(
-      "SELECT * FROM organizers WHERE id = $1",
+      "SELECT * FROM organizers WHERE organizer_id = $1",
       [organizerId]
     );
     const updatedOrganizer = updatedOrganizerResult.rows[0];
@@ -181,7 +182,7 @@ export const updateOrganizerProfile = async (req, res) => {
 const verificationCodes = new Map();
 
 export const requestVerificationCode = async (req, res) => {
-  const organizerId = req.user?.id;
+  const organizerId = req.user?.organizer_id;
 
   if (!organizerId)
     return sendErrorResponse(
@@ -193,7 +194,7 @@ export const requestVerificationCode = async (req, res) => {
   try {
     const generatedCode = crypto.randomBytes(3).toString("hex");
     const organizerResult = await client.query(
-      "SELECT email FROM organizers WHERE id = $1",
+      "SELECT email FROM organizers WHERE organizer_id = $1",
       [organizerId]
     );
     const organizerEmail = organizerResult.rows[0]?.email;
@@ -227,7 +228,7 @@ export const requestVerificationCode = async (req, res) => {
 
 // Update Bank Details
 export const updateBankDetails = async (req, res) => {
-  const organizerId = req.user?.id;
+  const organizerId = req.user?.organizer_id;
   const { BeneficiaryName, AccountNumber, Bank_IFCCode, verificationCode } =
     req.body;
 
@@ -278,7 +279,7 @@ export const updateBankDetails = async (req, res) => {
     const updateQuery = `
       UPDATE organizers
       SET BeneficiaryName = $1, AccountNumber = $2, Bank_IFCCode = $3, updated_at = NOW()
-      WHERE id = $4
+      WHERE organizer_id = $4
     `;
     const updateValues = [
       BeneficiaryName,
@@ -321,9 +322,10 @@ export const forgot_password1 = async (req, res) => {
 export const reset_password = async (req, res) => {
   const { Newpassword } = req.body;
   const { id, token } = req.params;
+const  organizer_id = id
 
   try {
-    await verify_token_reset_password(id, token, Newpassword);
+    await verify_token_reset_password(organizer_id, token, Newpassword);
     res.status(200).json({ message: "Password updated/reset successfully" });
   } catch (error) {
     sendErrorResponse(res, 400, error.message || "Something went wrong");
@@ -334,8 +336,8 @@ export const reset_password = async (req, res) => {
 export const AcceptTermsAndConditions = async (req, res) => {
   try {
     await client.query(
-      "UPDATE organizers SET terms_accepted = true WHERE id = $1",
-      [req.user?.id]
+      "UPDATE organizers SET terms_accepted = true WHERE organizer_id = $1",
+      [req.user?.organizer_id]
     );
     res.status(200).json({ message: "Terms accepted successfully" });
   } catch (error) {

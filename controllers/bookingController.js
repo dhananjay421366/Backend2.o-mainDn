@@ -1,8 +1,7 @@
 import CryptoJs from "crypto-js";
-import { createBooking, getBookingDetails, listUserBookings } from "../services/bookingService.js";
+import {  createBooking, getBookingDetails, listUserBookings } from "../services/bookingService.js";
 import db from '../config.js';
 
-// Controller function to handle the creation of a new booking
 export const create = async (req, res) => {
   try {
     const bookingData = req.body; // Get booking data from the request body

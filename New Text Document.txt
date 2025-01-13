@@ -157,8 +157,8 @@ CREATE TABLE payments (
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
     booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
-    event_id INTEGER REFERENCES events(id) ON DELETE CASCADE,
-    ticket_type VARCHAR(50) NOT NULL,
+    event_id INTEGER REFERENCES events(id) ON  ticket_types VARCHAR(50)[] NOT NULL DEFAULT '{}'DELETE CASCADE,
+   ,
     status VARCHAR(50) DEFAULT 'generated',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -8,7 +8,7 @@ dotenv.config();
 // Controller function to handle the creation of an event
 export const create = async (req, res) => {
   try {
-    const organizerId = req.user?.id; // Organizer ID from the authenticated user
+    const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user
     console.log('Organizer ID:', organizerId);
 
     // Check if the authenticated user exists in the organizers table

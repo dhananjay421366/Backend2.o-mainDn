@@ -4,7 +4,6 @@ import { authenticate, authenticate_user } from '../middlewares/authMiddleware.j
 import { upload } from '../middlewares/multer.middleware.js';
 
 const router = express.Router();
-
 router.post('/register', register);
 router.get('/verify/:token', verifyEmail);//some doubt
 router.post('/login', login);

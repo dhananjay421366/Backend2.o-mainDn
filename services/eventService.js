@@ -63,9 +63,9 @@ export const listEvents = async (filters) => {
 
 
 // Service function to get details of a specific event by its ID
-export const getEventDetails = async (id) => {
+export const getEventDetails = async (event_id) => {
   // Query event details from the events table
-  const result = await client.query('SELECT * FROM events WHERE id = $1', [id]);
+  const result = await client.query('SELECT * FROM events WHERE event_id = $1', [event_id]);
   if (result.rows.length === 0) {
     throw new Error('Event not found'); // Throw error if event is not found
   }
@@ -106,7 +106,7 @@ export const updateEvent = async (eventId, organizerId, eventData, finalEventPos
         category = COALESCE($11, category),
         event_poster = COALESCE($12, event_poster),
         tickets = COALESCE($13, tickets::jsonb)
-      WHERE id = $14 AND organizer_id = $15
+      WHERE event_id = $14 AND organizer_id = $15
       RETURNING *`,
     [
       name,
@@ -133,7 +133,7 @@ export const updateEvent = async (eventId, organizerId, eventData, finalEventPos
 export const findEventById = async (eventId) => {
   try {
     const result = await client.query(
-      `SELECT * FROM events WHERE id = $1`,
+      `SELECT * FROM events WHERE event_id = $1`,
       [eventId]
     );
 

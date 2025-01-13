@@ -1,8 +1,10 @@
 import express from 'express';
 import { PaymentStatus, PhonePay } from '../controllers/paynowcontroller.js';
+import { authenticate } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
+router.use(authenticate); // Apply verifyJWT middleware to all routes in this file
 
 //  phone pay routes 
 router.get("/pay", PhonePay)

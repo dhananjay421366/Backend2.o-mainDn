@@ -1,9 +1,8 @@
 // Import database client configuration
 import client from '../config.js';
 
-// Service function to get the details of a specific booking by its ID
 export const createBooking = async (bookingData) => {
-  const { event_id, ticket_quantity, user_id, ticket_type } = bookingData;
+  const { event_id, ticket_quantity, user_id, ticket_types } = bookingData; // ticket_types is an array
 
   if (ticket_quantity <= 0) {
     throw new Error('Invalid ticket quantity');
@@ -14,7 +13,7 @@ export const createBooking = async (bookingData) => {
     await client.query('BEGIN');
 
     // Lock the event record to prevent race conditions
-    const event = await client.query('SELECT * FROM events WHERE id = $1 FOR UPDATE', [event_id]);
+    const event = await client.query('SELECT * FROM events WHERE event_id = $1 FOR UPDATE', [event_id]);
 
     // Check if the event exists and has enough tickets
     if (event.rows.length === 0) {
@@ -26,14 +25,14 @@ export const createBooking = async (bookingData) => {
 
     // Deduct tickets from the event
     await client.query(
-      'UPDATE events SET available_tickets = available_tickets - $1, sold_tickets = sold_tickets + $1 WHERE id = $2',
+      'UPDATE events SET available_tickets = available_tickets - $1 WHERE event_id = $2',
       [ticket_quantity, event_id]
     );
 
-    // Create the booking
+    // Create the booking with multiple ticket types
     const booking = await client.query(
       'INSERT INTO bookings (event_id, user_id, ticket_quantity, ticket_type) VALUES ($1, $2, $3, $4) RETURNING *',
-      [event_id, user_id, ticket_quantity, ticket_type]
+      [event_id, user_id, ticket_quantity, ticket_types]
     );
 
     // Commit transaction
@@ -47,9 +46,11 @@ export const createBooking = async (bookingData) => {
   }
 };
 
-export const getBookingDetails = async (id) => {
+
+
+export const getBookingDetails = async (booking_id) => {
   // Fetch booking details by booking ID
-  const result = await client.query('SELECT * FROM bookings WHERE id = $1', [id]);
+  const result = await client.query('SELECT * FROM bookings WHERE booking_id = $1', [booking_id]);
 
   // If booking is not found, throw an error
   if (result.rows.length === 0) {

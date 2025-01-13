@@ -1,8 +1,10 @@
 import express from 'express';
 import { checkPaymentStatus, createOrder, createOrderCashfree, dtailedoforder, initiaterefund, paybycard, paybynetwork, paybyupi, paybyupiqr, paybywallet, PaymentStatus, PhonePay, refundinformation, verifyPayment } from '../controllers/paynowcontroller.js';
+import { authenticate } from '../middlewares/authMiddleware.js';
 
 
 const router = express.Router();
+router.use(authenticate); // Apply verifyJWT middleware to all routes in this file
 
 // CashFree routes 
 router.post('/createOrder', createOrderCashfree);
