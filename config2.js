@@ -11,6 +11,6 @@ export const cashfree = {
 };
 
 export const instance = new Razorpay({
-  key_id: process.env.CF_CLIENT_ID, // Replace with environment variables for security
-  key_secret: process.env.CF_CLIENT_SECRET
+  key_id: process.env.RAZORPAY_KEY_ID, // Replace with environment variables for security
+  key_secret: process.env.RAZORPAY_KEY_SECRET
 });

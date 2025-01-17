@@ -4,6 +4,8 @@ import client from '../config.js';
 export const createBooking = async (bookingData) => {
   const { event_id, ticket_quantity, user_id, ticket_types } = bookingData; // ticket_types is an array
 
+  const booking_Id = generateBooking_Id();
+
   if (ticket_quantity <= 0) {
     throw new Error('Invalid ticket quantity');
   }
@@ -31,8 +33,8 @@ export const createBooking = async (bookingData) => {
 
     // Create the booking with multiple ticket types
     const booking = await client.query(
-      'INSERT INTO bookings (event_id, user_id, ticket_quantity, ticket_type) VALUES ($1, $2, $3, $4) RETURNING *',
-      [event_id, user_id, ticket_quantity, ticket_types]
+      'INSERT INTO bookings (booking_Id,event_id, user_id, ticket_quantity, ticket_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [booking_Id, event_id, user_id, ticket_quantity, ticket_types]
     );
 
     // Commit transaction
@@ -65,4 +67,9 @@ export const listUserBookings = async (userId) => {
   // Fetch all bookings for the user by user ID
   const result = await client.query('SELECT * FROM bookings WHERE user_id = $1', [userId]);
   return result.rows; // Return the list of bookings
+};
+
+export const generateBooking_Id = () => {
+  const randomPart = Math.random().toString(36).substring(2, 11).toUpperCase();
+  return `bookId${randomPart}`; // Prefix with "ticket_"
 };

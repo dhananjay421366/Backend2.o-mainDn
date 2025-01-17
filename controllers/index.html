@@ -18,129 +18,85 @@
 
     <body>
         <div class="container">
-            <!DOCTYPE html>
-            <html lang="en">
-
-            <head>
-                <meta charset="UTF-8">
-                <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>RazorPay Custom Checkout</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-                    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-                    crossorigin="anonymous">
-                <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-                <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-                <script type="text/javascript" src="https://checkout.razorpay.com/v1/razorpay.js"></script>
-            </head>
-
-            <body>
-
-                <body>
-                    <div class="container">
-                        <!DOCTYPE html>
-                        <html lang="en">
-
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>RazorPay Custom Checkout</title>
-                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-                                rel="stylesheet"
-                                integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-                                crossorigin="anonymous">
-                            <script src="https://code.jquery.com/jquery-3.6.0.min.js"
-                                integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
-                            </script>
-                            <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
-                            <script type="text/javascript" src="https://checkout.razorpay.com/v1/razorpay.js"></script>
-                        </head>
-
-                        <body>
-
-                            <body>
-                                <div class="container">
-                                    <div class="container p-0">
-                                        <div class="card px-4">
-                                            <input type="hidden" name="order_id" value="order_PgYSqBFXbiQn8Z">
-                                            <p class="h8 py-3">Payment Details</p>
-                                            <form id="parent-form">
-                                                <div class="col-12">
-                                                    <div class="row gx-3">
-                                                        <div class="d-flex flex-column">
-                                                            <p class="text mb-1">Person Name</p>
-                                                            <input class="form-control mb-3" type="text" placeholder="John MacClain" id="name">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex flex-column">
-                                                            <p class="text mb-1">Card Number</p>
-                                                            <input class="form-control mb-3" id="card_number" type="text" placeholder="1234 5678 435678" name="card_number">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex flex-column">
-                                                            <p class="text mb-1">UPI</p>
-                                                            <input class="form-control mb-3" id="upi" type="text" placeholder="example@upi" name="vpa">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="d-flex flex-column">
-                                                            <p class="text mb-1">Netbanking</p>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio" name="bank" id="net_airtel" value="AIRP">
-                                                                <label class="form-check-label" for="net_airtel">
+            <div class="container p-0">
+                <div class="card px-4">
+                    <input type="hidden" name="order_id" value="order_Pjj2uPJkiEVLxb">
+                    <p class="h8 py-3">Payment Details</p>
+                    <form id="parent-form">
+                        <div class="col-12">
+                            <div class="row gx-3">
+                                <div class="d-flex flex-column">
+                                    <p class="text mb-1">Person Name</p>
+                                    <input class="form-control mb-3" type="text" placeholder="John MacClain" id="name">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex flex-column">
+                                    <p class="text mb-1">Card Number</p>
+                                    <input class="form-control mb-3" id="card_number" type="text" placeholder="1234 5678 435678" name="card_number">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex flex-column">
+                                    <p class="text mb-1">UPI</p>
+                                    <input class="form-control mb-3" id="upi" type="text" placeholder="example@upi" name="vpa">
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex flex-column">
+                                    <p class="text mb-1">Netbanking</p>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank" id="net_airtel" value="AIRP">
+                                        <label class="form-check-label" for="net_airtel">
                 Airtel Payment Bank
               </label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input" type="radio" name="bank" id="net_union" value="UBIN">
-                                                                <label class="form-check-label" for="net_union">
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="bank" id="net_union" value="UBIN">
+                                        <label class="form-check-label" for="net_union">
                 Union Bank of India
               </label>
-                                                            </div>
+                                    </div>
 
-                                                        </div>
-
-
-                                                        <div class="col-12">
-                                                            <div class="d-flex flex-column">
-                                                                <p class="text mb-1">wallet</p>
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="radio" name="wallet" id="wallet_freecharge" value="freecharge">
-                                                                    <label class="form-check-label" for="wallet_freecharge">Freecharge</label>
-                                                                </div>
-                                                                <div class="form-check">
-                                                                    <input class="form-check-input" type="radio" name="wallet" id="wallet_mobikwik" value="mobikwik">
-                                                                    <label class="form-check-label" for="wallet_mobikwik">Mobikwik</label>
-                                                                </div>
-                                                            </div>
+                                </div>
 
 
+                                <div class="col-12">
+                                    <div class="d-flex flex-column">
+                                        <p class="text mb-1">wallet</p>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="wallet" id="wallet_freecharge" value="freecharge">
+                                            <label class="form-check-label" for="wallet_freecharge">Freecharge</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="wallet" id="wallet_mobikwik" value="mobikwik">
+                                            <label class="form-check-label" for="wallet_mobikwik">Mobikwik</label>
+                                        </div>
+                                    </div>
 
 
 
 
 
-                                                            <div class="col-6">
-                                                                <div class="d-flex flex-column">
-                                                                    <p class="text mb-1">Expiry</p>
-                                                                    <input class="form-control mb-3" id="card_expiry" type="text" placeholder="MM/YY" name="card_expiry">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-6">
-                                                                <div class="d-flex flex-column">
-                                                                    <p class="text mb-1">CVV/CVC</p>
-                                                                    <input class="form-control mb-3 pt-2" id="card_cvv" type="password" placeholder="***" name="card_cvv">
-                                                                </div>
-                                                            </div>
 
-                                                            <!-- Payment method selection -->
-                                                            <div class="col-12">
-                                                                <label for="payment-method">Select Payment Method:</label>
-                                                                <select class="form-control mb-3" id="payment-method">
+
+                                    <div class="col-6">
+                                        <div class="d-flex flex-column">
+                                            <p class="text mb-1">Expiry</p>
+                                            <input class="form-control mb-3" id="card_expiry" type="text" placeholder="MM/YY" name="card_expiry">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex flex-column">
+                                            <p class="text mb-1">CVV/CVC</p>
+                                            <input class="form-control mb-3 pt-2" id="card_cvv" type="password" placeholder="***" name="card_cvv">
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment method selection -->
+                                    <div class="col-12">
+                                        <label for="payment-method">Select Payment Method:</label>
+                                        <select class="form-control mb-3" id="payment-method">
             <option value="card">Card</option>
             <option value="upi">UPI</option>
             <option value="netbanking">Netbanking</option>
@@ -148,18 +104,18 @@
             <option value="qr">QR Code</option>
             <option value="paylater">Pay Later</option>
           </select>
-                                                            </div>
-
-                                                            <div class="col-12">
-                                                                <input type="button" value="55000" name="amount" class="btn btn-primary mb-3" onclick="pay();">
-                                                            </div>
-                                                        </div>
-                                            </form>
-                                        </div>
                                     </div>
 
-                                    <script>
-                                        var razorpay = new Razorpay({
+                                    <div class="col-12">
+                                        <input type="button" value="55000" name="amount" class="btn btn-primary mb-3" onclick="pay();">
+                                    </div>
+                                </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                var razorpay = new Razorpay({
     key: 'rzp_test_v9Qzz296oIxlmW', // Replace with your Razorpay key
   });
 
@@ -174,7 +130,7 @@
       currency: "INR",
       email: 'gaurav.kumar@example.com',
       contact: '9123456780',
-      order_id: 'order_PgYSqBFXbiQn8Z',
+      order_id: 'order_Pjj2uPJkiEVLxb',
       notes: {
         address: 'Ground Floor, SJR Cyber, Laskar Hosur Road, Bengaluru',
       }
@@ -246,48 +202,27 @@
     
       // Send payment details to backend for verification
       $.ajax({
-        url: 'http://127.0.0.1:5000/razorpay/test/pay-verify',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-          orderId: razorpayResponse.razorpay_order_id,
-          paymentId: razorpayResponse.razorpay_payment_id,
-          signature: razorpayResponse.razorpay_signature,
-        }),
-        success: function (response) {
-          console.log('Payment verified successfully:', response);
+        url: "http://127.0.0.1:5000/checkout/pay-verify",  // Your backend route for payment verification
+        type: "POST",
+        data: {
+          razorpay_payment_id: razorpay_payment_id,
+          razorpay_order_id: razorpay_order_id,
+          razorpay_signature: razorpay_signature,
+          paymentStatus :paymentStatus,
+       // amout :amount
         },
-        error: function (xhr, status, error) {
-          console.error('Error in verifying payment', xhr);
+        success: function (response) {
+          swal("Payment verification successful");
+        },
+        error: function (error) {
+          console.log("Error in verifying payment", error);
         },
       });
-      
+    });
   }
-    )
-}
-                                    </script>
+            </script>
 
 
-
-                                </div>
-                                <script
-                                    src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-                                    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-                                    crossorigin="anonymous">
-                                </script>
-                            </body>
-                        </body>
-
-                        </html>
-                    </div>
-                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-                        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-                        crossorigin="anonymous">
-                    </script>
-                </body>
-            </body>
-
-            </html>
         </div>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">

@@ -6,14 +6,7 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { findOrganizerById } from '../services/organizerServicre.js';
 import { z } from 'zod';
 dotenv.config();
-// Controller function to handle the creation of an event
-const ticketSchema = z.object({
-  ticket_type: z.string(),
-  number_of_tickets: z.number().int().positive(),
-  description: z.string().optional(),
-  price: z.number().positive(),
-});
-const ticketsArraySchema = z.array(ticketSchema).min(1).max(5);
+
 export const create = async (req, res) => {
   try {
     const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user
@@ -28,12 +21,6 @@ export const create = async (req, res) => {
     const eventData = req.body; // Event data from the request body
     console.log('Event Data:', eventData);
 
-    // Validate the tickets parameter using Zod
-    const tickets = req.body.tickets;
-    const parsedTickets = ticketsArraySchema.safeParse(tickets);
-    if (!parsedTickets.success) {
-      return res.status(400).json({ message: 'Invalid tickets data.', errors: parsedTickets.error.errors });
-    }
 
     // Check if an event poster is uploaded
     const event_poster = req.files?.event_poster?.[0];

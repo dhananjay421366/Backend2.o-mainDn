@@ -1,5 +1,5 @@
 import express from 'express';
-import { PaymentStatus, PhonePay } from '../controllers/paynowcontroller.js';
+import { PaymentStatus, PhonePay } from '../controllers/phonepayController.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();

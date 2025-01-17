@@ -24,7 +24,7 @@ dotenv.config();
 const app = express();
 
 // Global variables to store the selected payment gateway and mode
-export let selectedGateway = 'cashfree'; // Default to Cashfree
+export let selectedGateway = 'razorpay'; // Default to Cashfree
 let gatewayMode = 'test'; // Default to test mode (can be 'live' or 'test')
 
 // Middleware
@@ -46,24 +46,17 @@ app.use('/api/beneficiaries', beneficiaryRoutes);
 app.use('/api/verification', bankAccountVerificationRoutes);
 app.use('/api/transfer', transferRoutes);
 
-// Razorpay route is commented out, you can enable it if needed
-app.use('/checkout', razorpayRoutes);
-
-// Dynamic payment gateway routes
 const dynamicRoutes = {};
 
-<<<<<<< HEAD
 const restrictToSelectedGateway = (gateway) => (req, res, next) => {
   if (selectedGateway !== gateway) {
     return res
       .status(403)
-      .json({ error: `Access denied. Current gateway is ${selectedGateway}` });
+      .json({ error: `Access denied. Current gateway is ${selectedGateway} ` });
   }
   next();
 };
 
-=======
->>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
 // Set up routes based on the selected gateway and mode
 const setupPaymentGatewayRoutes = () => {
   // Remove existing dynamic routes
@@ -72,7 +65,6 @@ const setupPaymentGatewayRoutes = () => {
   });
 
   // Add the selected gateway's routes based on the mode
-<<<<<<< HEAD
   if (selectedGateway === 'cashfree') {
     dynamicRoutes.cashfree = app.use(
       `/cashfree/${gatewayMode}`,
@@ -91,20 +83,6 @@ const setupPaymentGatewayRoutes = () => {
       restrictToSelectedGateway('phonepay'),
       PhonePayRoutes
     );
-=======
-  switch (selectedGateway) {
-    case 'cashfree':
-      dynamicRoutes.cashfree = app.use(`/cashfree/${gatewayMode}`, cashfreeRoutes);
-      break;
-    case 'razorpay':
-      dynamicRoutes.razorpay = app.use('/checkout', razorpayRoutes);
-      break;
-    case 'phonepay':
-      dynamicRoutes.phonepay = app.use(`/phone-pay/${gatewayMode}`, PhonePayRoutes);
-      break;
-    default:
-      break;
->>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
   }
 };
 
@@ -113,7 +91,6 @@ setupPaymentGatewayRoutes();
 
 // Toggle payment gateway
 const togglePaymentGateway = (req, res) => {
-<<<<<<< HEAD
   // Toggle the selected gateway
   if (selectedGateway === 'cashfree') {
     selectedGateway = 'razorpay';
@@ -122,16 +99,11 @@ const togglePaymentGateway = (req, res) => {
   } else if (selectedGateway === 'phonepay') {
     selectedGateway = 'cashfree';
   }
-=======
-  const gateways = ['cashfree', 'razorpay', 'phonepay'];
-  const currentIndex = gateways.indexOf(selectedGateway);
-  selectedGateway = gateways[(currentIndex + 1) % gateways.length];
->>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
 
   // Reconfigure the routes based on the new selection
   setupPaymentGatewayRoutes();
 
-  return res.status(200).json({ message: `Payment gateway switched to ${selectedGateway}` });
+  return res.status(200).json({ message: `Payment gateway switched to ${selectedGateway} ` });
 };
 
 // Toggle gateway mode
@@ -142,7 +114,10 @@ const toggleGatewayMode = (req, res) => {
   // Reconfigure the routes based on the new mode
   setupPaymentGatewayRoutes();
 
-  return res.status(200).json({ message: `Payment gateway mode switched to ${gatewayMode}` });
+
+  return res
+    .status(200)
+    .json({ message: `Payment gateway mode switched to ${gatewayMode}` });
 };
 
 // Register the toggle routes

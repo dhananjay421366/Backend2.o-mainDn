@@ -1,9 +1,6 @@
 import client from '../config.js';
 import Razorpay from 'razorpay';
-const instance = new Razorpay({
-  key_id: process.env.CF_CLIENT_ID, // Replace with environment variables for security
-  key_secret: process.env.CF_CLIENT_SECRET
-});
+import { instance } from "../config2.js";
 
 export const processPayment = async (paymentData) => {
   const { amount, payment_method, booking_id } = paymentData;

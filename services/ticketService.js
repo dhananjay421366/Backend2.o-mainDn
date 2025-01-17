@@ -15,7 +15,11 @@ export const generateTickets = async (ticketData) => {
   const values = [];
   for (let i = 0; i < ticket_count; i++) {
     const ticketId = generateTicketId(); // Generate unique ticket ID
-    values.push(`('${ticketId}', ${booking_id}, ${event_id}, '{${ticket_types.join(',')}}', 'pending')`);
+    values.push(
+      `('${ticketId}', '${booking_id}', '${event_id}', '{${ticket_types
+        .map((type) => type)
+        .join(',')}}', 'pending')`
+    ); // Ensure booking_id and event_id are strings
   }
 
   const query = `

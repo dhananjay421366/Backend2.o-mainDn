@@ -1,13 +1,5 @@
 import { CFApp, CFAppPayment, CFCard, CFCardPayment, CFConfig, CFCustomerDetails, CFEnvironment, CFNetbanking, CFOrderPayRequest, CFOrderRequest, CFPaymentGateway, CFPaymentMethod, CFRefundRequest, CFUPI, CFUPIPayment } from "cashfree-pg-sdk-nodejs";
-import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid';
-import client from '../config.js';
-import uniqid from 'uniqid';
-import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
-import { selectedGateway } from "../app.js";
-import { instance } from "../config2.js";
-import { generateTicketId } from "../services/ticketService.js";
 dotenv.config();
 
 // Initialize Cashfree configuration with the environment and credentials
@@ -308,7 +300,7 @@ export const checkPaymentStatus = async (req, res) => {
   try {
     const orderId = req.cookies?.order_id; // Retrieve the order ID from cookies
     console.log("Order ID:", orderId);
-    console.log(res);
+
     // Ensure orderId is present
     if (!orderId) {
       return res.status(400).json({ message: "Order ID is missing from cookies" });
@@ -316,20 +308,15 @@ export const checkPaymentStatus = async (req, res) => {
 
     const apiInstance = new CFPaymentGateway();
     const response = await apiInstance.getOrder(cfConfig, orderId);
-<<<<<<< HEAD
 
     // Log response for debugging
     console.log("API Response:", response);
 
-    // Ensure response and cfOrder exist
-    if (!response || !response.cfOrder) {
-=======
-    console.log("API Response:", response);
     // Check if cfOrder exists in the response
     if (response?.cfOrder) {
       const { orderStatus, payments } = response.cfOrder;
       const paymentMethods = payments ? payments.map(payment => payment.paymentMethod) : null; // Extract payment methods
-      
+
       // Log payments to check structure
       console.log("Payments Data:", payments);
 
@@ -349,33 +336,7 @@ export const checkPaymentStatus = async (req, res) => {
         });
       }
     } else {
->>>>>>> e90e4c3130b8fec6765540f868a98d886ea58ddf
       return res.status(404).json({ message: "Order not found in the system" });
-    }
-
-    const { orderStatus, payments } = response.cfOrder;
-
-    // Check and extract payment methods
-    const paymentMethods = payments ? payments.map((payment) => payment.paymentMethod) : null;
-
-    // Log payments and payment methods for debugging
-    console.log("Payments Data:", payments);
-    console.log("Payment Methods Extracted:", paymentMethods);
-
-    // Check if the payment was successful
-    if (orderStatus === "PAID") {
-      return res.status(200).json({
-        message: "Payment was successful",
-        orderDetails: response.cfOrder,
-        paymentMethods: paymentMethods || "No payment methods found", // Send payment methods if available
-      });
-    } else {
-      return res.status(200).json({
-        message: "Payment status is not PAID",
-        orderStatus,
-        payments: payments || "No payment data available",
-        paymentMethods: paymentMethods || "No payment methods found",
-      });
     }
   } catch (error) {
     console.error("Error fetching payment status:", error);
@@ -385,297 +346,7 @@ export const checkPaymentStatus = async (req, res) => {
       return res.status(500).json({ message: "Unexpected error in payment processing", error: error.message });
     }
 
-    res.status(500).json({ message: "Failed to fetch payment status", error: error.message });
+    return res.status(500).json({ message: "Failed to fetch payment status", error: error.message });
   }
 };
 
-// Create an order
-export const createOrder = async (req, res) => {
-  try {
-    const {
-      amount,
-      ticketId = uuidv4(), // Generate a unique ticket ID
-      TicketType = "single",
-      person = 1,
-      Fullname = "Dhananjay",
-      Email = "nimbalkar@gmail.com",
-      Mobile_No = 7350304620,
-      bookingId = 19,
-    } = req.body;
-    console.log(selectedGateway);
-    console.log(ticketId);
-
-    const options = {
-      amount: (amount || 1) * 100, // Razorpay requires the amount in paisa
-      currency: "INR",
-      receipt: ticketId, // Use the unique ticket ID as the receipt (or a reference)
-    };
-
-    res.cookie('bookingId', bookingId, { httpOnly: true, secure: true });
-
-    instance.orders.create(options, (err, order) => {
-      if (err) {
-        console.error("Error creating order:", err);
-        return res.status(500).json({
-          success: false,
-          message: "Failed to create Razorpay order",
-          error: err.message,
-        });
-      }
-      res.render("checkout", {
-        amount: order.amount,
-        order_id: order.id, // Razorpay order ID
-        Email,
-        Mobile_No,
-      });
-    });
-  } catch (error) {
-    console.error("Error in createOrder:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-      error: error.stack,
-    });
-  }
-};
-
-export const verifyPayment = async (req, res) => {
-  try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.cookies;
-    const bookingId = req.cookies?.bookingId;
-
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-      return res.status(400).json({ success: false, message: "Missing Razorpay payment details" });
-    }
-
-    // Validate payment signature
-    const generatedSignature = crypto
-      .createHmac("sha256", 'QEQ5f4BfTH7fxhE1iXSkrK1y') // Replace with your Razorpay secret key
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest("hex");
-
-    if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({ success: false, message: "Invalid payment signature" });
-    }
-
-    const paymentDetails = await checkPaymentStatusRazorpay(razorpay_payment_id);
-    console.log("Payment details:", paymentDetails);
-
-    await client.query("BEGIN"); // Start transaction
-
-    // Check if booking exists
-    const bookingExists = await client.query(
-      "SELECT booking_id FROM bookings WHERE booking_id = $1",
-      [bookingId]
-    );
-
-    if (bookingExists.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({ success: false, message: "Invalid booking ID" });
-    }
-
-    // Insert payment details
-    const paymentResult = await client.query(
-      `INSERT INTO payments 
-        (booking_id, amount, status, payment_method, transaction_id, payment_gateway) 
-        VALUES ($1, $2, $3, $4, $5, $6) 
-        RETURNING *`,
-      [
-        bookingId,
-        paymentDetails.amount,
-        paymentDetails.status,
-        paymentDetails.method,
-        paymentDetails.id,
-        "razorpay",
-      ]
-    );
-
-    // Update booking status
-    const bookingUpdate = await client.query(
-      `UPDATE bookings 
-        SET status = $1, updated_at = CURRENT_TIMESTAMP 
-        WHERE booking_id = $2 
-        RETURNING *`,
-      ["confirmed", bookingId]
-    );
-
-    // Update the tickets' status for this booking ID
-    const ticketUpdate = await client.query(
-      `UPDATE tickets 
-        SET status = 'confirmed' 
-        WHERE booking_id = $1 
-        RETURNING *`,
-      [bookingId]
-    );
-
-    await client.query("COMMIT"); // Commit transaction
-
-    return res.status(200).json({
-      success: true,
-      message: "Payment verified and booking updated successfully.",
-      payment: paymentResult.rows[0],
-      booking: bookingUpdate.rows[0],
-      tickets: ticketUpdate.rows, // Return all updated tickets
-    });
-  } catch (error) {
-    console.error("Error in verifyPayment:", error);
-    await client.query("ROLLBACK");
-    return res.status(500).json({ success: false, message: error.message || "Something went wrong" });
-  }
-};
-<<<<<<< HEAD
-
-
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> ec3cf7aa786025de4d42ef36d8043b7375e7f263
->>>>>>> e90e4c3130b8fec6765540f868a98d886ea58ddf
-export const processRefund = async (req, res) => {
-  try {
-    const { paymentId, refundAmount } = req.body;
-
-    if (!paymentId) {
-      return res.status(400).json({
-        success: false,
-        message: "Payment ID is required to process a refund.",
-      });
-    }
-
-    // Prepare refund options
-    const refundOptions = {
-      payment_id: paymentId,
-      amount: refundAmount * 100, // Convert to paisa
-    };
-
-    // Create a refund
-    const refund = await razorpayInstance.payments.refund(refundOptions);
-
-    console.log("Refund details:", refund);
-
-    // Log the refund details in your database
-    const refundRecord = await client.query(
-      `INSERT INTO refunds (transaction_id, refund_id, amount, status) VALUES ($1, $2, $3, $4) RETURNING *`,
-      [
-        refund.payment_id,
-        refund.id,
-        refund.amount / 100, // Convert back to INR
-        refund.status,
-      ]
-    );
-
-    console.log("Refund record inserted:", refundRecord.rows[0]);
-
-    return res.status(200).json({
-      success: true,
-      message: "Refund processed successfully.",
-      refund: refund,
-    });
-  } catch (error) {
-    console.error("Error processing refund:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message || "Failed to process the refund.",
-      error: error.stack,
-    });
-  }
-};
-
-// PhonePe Controller
-export const PhonePay = async (req, res) => {
-  try {
-    const { amount } = req.body;
-
-    if (!amount) {
-      return res.status(400).json({ success: false, message: "Amount is required." });
-    }
-
-    const userId = "MUID123";
-    const merchantTransactionId = uniqid();
-
-    const normalPayLoad = {
-      merchantId: process.env.MERCHANT_ID,
-      merchantTransactionId,
-      merchantUserId: userId,
-      amount: amount * 100,
-      redirectUrl: `${APP_BE_URL}/payment/validate/${merchantTransactionId}`,
-      redirectMode: "REDIRECT",
-      mobileNumber: "9999999999",
-      paymentInstrument: {
-        type: "PAY_PAGE",
-      },
-    };
-
-    const base64EncodedPayload = Buffer.from(JSON.stringify(normalPayLoad), "utf8").toString("base64");
-    const stringToHash = base64EncodedPayload + "/pg/v1/pay" + SALT_KEY;
-    const sha256_val = sha256(stringToHash);
-    const xVerifyChecksum = sha256_val + "###" + SALT_INDEX;
-
-    const response = await axios.post(`${PHONE_PE_HOST_URL}/pg/v1/pay`,
-      { request: base64EncodedPayload },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": xVerifyChecksum,
-          accept: "application/json",
-        },
-      }
-    );
-
-    if (response.data?.data?.instrumentResponse) {
-      res.status(200).json({
-        success: true,
-        data: { redirectUrl: response.data.data.instrumentResponse.redirectInfo.url },
-        message: "Payment initiated successfully."
-      });
-    } else {
-      res.status(400).json({ success: false, message: "Payment initiation failed." });
-    }
-  } catch (error) {
-    console.error("Payment initiation error:", error.response?.data || error.message);
-    res.status(500).json({ success: false, message: error.response?.data || error.message });
-  }
-};
-
-// Payment Status
-export const PaymentStatus = async (req, res) => {
-  try {
-    const { merchantTransactionId } = req.params;
-
-    if (!merchantTransactionId) {
-      return res.status(400).json({ success: false, message: "Merchant Transaction ID is required" });
-    }
-
-    const statusUrl = `${PHONE_PE_HOST_URL}/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}`;
-    const stringToHash = `/pg/v1/status/${MERCHANT_ID}/${merchantTransactionId}` + SALT_KEY;
-    const sha256_val = sha256(stringToHash);
-    const xVerifyChecksum = sha256_val + "###" + SALT_INDEX;
-
-    const response = await axios.get(statusUrl, {
-      headers: {
-        "Content-Type": "application/json",
-        "X-VERIFY": xVerifyChecksum,
-        "X-MERCHANT-ID": MERCHANT_ID,
-        accept: "application/json",
-      },
-    });
-
-    if (response.data?.code === "PAYMENT_SUCCESS") {
-      res.status(200).json({
-        success: true,
-        data: response.data,
-        message: "Payment successful."
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: `Payment not successful. Status: ${response.data.code}`
-      });
-    }
-  } catch (error) {
-    console.error("Payment status check error:", error.response?.data || error.message);
-    res.status(500).json({ success: false, message: error.response?.data || error.message });
-  }
-};
