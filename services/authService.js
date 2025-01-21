@@ -1,11 +1,9 @@
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import client from '../config.js';
 import pkg from 'twilio';
-const { Twilio } = pkg;
-import admin from 'firebase-admin';
+import client from '../config.js';
 const saltRounds = 10;
-import dotenv from 'dotenv'
 dotenv.config();
 
 export const registerOrganizer = async (email, password, phonenumber, organizer_name, Legal_Name) => {

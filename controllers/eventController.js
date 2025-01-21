@@ -155,7 +155,7 @@ export const unpublishEvent = async (req, res) => {
 };
 
 // update Events 
-export const updateEvents=async (req, res) => {
+export const updateEvents = async (req, res) => {
   try {
     const { eventId } = req.params; // Event ID from the request parameters
     const organizerId = req.user?.id; // Organizer ID from the authenticated user

@@ -6,9 +6,9 @@ export const generate = async (req, res) => {
   try {
     const ticketData = req.body; // Get ticket data from the request body
     const tickets = await generateTickets(ticketData); // Generate the tickets
-    res.status(201).json({ message: 'Tickets generated successfully.', tickets }); // Respond with success message and generated tickets
+    res.status(201).json({ message: 'Tickets generated successfully.', tickets }); // Respond with success message and tickets
   } catch (error) {
-    console.log("Error to creating ticket",error);
+    console.error("Error creating ticket:", error);
     res.status(400).json({ error: error.message }); // Respond with error message if generation fails
   }
 };
