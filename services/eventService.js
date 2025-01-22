@@ -2,8 +2,54 @@
 import client from '../config.js';
 
 // Service function to create an event in the database
-export const createEvent = async (organizerId, eventData, finalEventPoster) => {
-  console.log(eventData);
+// export const createEvent = async (organizerId, eventData, finalEventPoster) => {
+//   console.log(eventData);
+
+//   const {
+//     name,
+//     description,
+//     type,
+//     date,
+//     start_time,
+//     end_time,
+//     state,
+//     city,
+//     venue,
+//     available_tickets,
+//     category,
+//     tickets
+//   } = eventData;
+
+
+//   // Insert event data into the `events` table and return the created event
+//   const result = await client.query(
+//     `INSERT INTO events 
+//       (organizer_id, name, description, type, date, start_time, end_time, state, city, venue, available_tickets, category,event_poster, tickets) 
+//       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,$14) 
+//       RETURNING *`,
+//     [
+//       organizerId,
+//       name,
+//       description,
+//       type,
+//       date,
+//       start_time,
+//       end_time,
+//       state,
+//       city,
+//       venue,
+//       available_tickets,
+//       category,
+//       finalEventPoster,
+//       JSON.stringify(tickets)
+//     ]
+//   );
+//   return result.rows[0]; // Return the created event
+// };
+
+// Service function to create an event in the database
+export const createEvent = async (organizerId, eventData, finalEventPoster, tickets) => {
+  console.log('Event Data:', eventData);
 
   const {
     name,
@@ -16,16 +62,14 @@ export const createEvent = async (organizerId, eventData, finalEventPoster) => {
     city,
     venue,
     available_tickets,
-    category,
-    tickets
+    category
   } = eventData;
-
 
   // Insert event data into the `events` table and return the created event
   const result = await client.query(
     `INSERT INTO events 
-      (organizer_id, name, description, type, date, start_time, end_time, state, city, venue, available_tickets, category,event_poster, tickets) 
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,$14) 
+      (organizer_id, name, description, type, date, start_time, end_time, state, city, venue, available_tickets, category, event_poster, tickets) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
       RETURNING *`,
     [
       organizerId,
@@ -40,11 +84,21 @@ export const createEvent = async (organizerId, eventData, finalEventPoster) => {
       venue,
       available_tickets,
       category,
-      finalEventPoster,
-      JSON.stringify(tickets)
+      finalEventPoster, // Uploaded poster URL
+      JSON.stringify(tickets) // Save the tickets as a JSON string
     ]
   );
+
   return result.rows[0]; // Return the created event
+};
+
+// Service function to check if the organizer exists in the database
+export const findOrganizerById = async (organizerId) => {
+  const result = await client.query(
+    "SELECT * FROM organizers WHERE organizer_id = $1",
+    [organizerId]
+  );
+  return result.rows[0];
 };
 
 export const list_of_all_events = async () => {

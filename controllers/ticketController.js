@@ -2,14 +2,13 @@ import client from "../config.js"; // Assuming you have a configured PostgreSQL 
 import { generateTickets } from '../services/ticketService.js'
 
 // Controller function to handle ticket generation requests
-export const generate = async (req, res) => {
+export const generate = async ({ booking_id, event_id, ticket_types, ticket_count, user_id }) => {
   try {
-    const ticketData = req.body; // Get ticket data from the request body
-    const tickets = await generateTickets(ticketData); // Generate the tickets
-    res.status(201).json({ message: 'Tickets generated successfully.', tickets }); // Respond with success message and tickets
+    const tickets = await generateTickets(booking_id, event_id, ticket_types, ticket_count, user_id); // Generate the tickets
+    return tickets
   } catch (error) {
     console.error("Error creating ticket:", error);
-    res.status(400).json({ error: error.message }); // Respond with error message if generation fails
+
   }
 };
 export const scanTicket = async (req, res) => {

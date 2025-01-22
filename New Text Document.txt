@@ -114,7 +114,7 @@ CREATE TABLE events (
 );
 
 CREATE TABLE bookings (
-    id SERIAL PRIMARY KEY,
+    booking_id SERIAL PRIMARY KEY,
     event_id INTEGER NOT NULL REFERENCES events(id),
     user_id INTEGER NOT NULL,
     ticket_quantity INTEGER NOT NULL,

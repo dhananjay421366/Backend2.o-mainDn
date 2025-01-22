@@ -12,13 +12,12 @@ export const createOrder = async (req, res) => {
   try {
     let {
       amount = 1,
-      ticketId = uuidv4(),
       TicketType = "single",
       person = 1,
       Fullname = "Dhananjay",
       Email = "nimbalkar@gmail.com",
       Mobile_No = 7350304620,
-      bookingId = "bookId38RGEZZTD", // Existing booking ID
+      bookingId = "booked4GXKK2092", // Existing booking ID
     } = req.body;
 
     // Create Razorpay order
@@ -34,19 +33,6 @@ export const createOrder = async (req, res) => {
 
     // Debug: Log Razorpay order ID
     console.log("Razorpay Order ID:", order.id);
-
-    // Check if the ticket exists before trying to update
-    const checkTicketQuery = `SELECT * FROM tickets WHERE booking_id = $1`;
-    const checkTicket = await client.query(checkTicketQuery, [bookingId]);
-    console.log("Ticket Record Check:", checkTicket.rows);
-
-    if (checkTicket.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({
-        success: false,
-        message: "No ticket record found to update.",
-      });
-    }
 
     // Update the booking table with the Razorpay order ID
     const updateBookingQuery = `
@@ -69,36 +55,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    // Update `bookingId` to the new Razorpay order ID
-    bookingId = updatedBooking.rows[0].booking_id;
-
-    // Update the ticket table with the Razorpay order ID
-    const updateTicketQuery = `
-      UPDATE tickets
-      SET booking_id = $1
-      WHERE TRIM(booking_id) = TRIM($2)
-      RETURNING *;
-    `;
-    console.log("Updating Ticket with Booking ID:", bookingId.trim());
-    const updatedTicket = await client.query(updateTicketQuery, [
-      order.id, // Razorpay order ID
-      bookingId.trim(), // Trimmed booking ID
-    ]);
-    console.log("Updated Ticket Record:", updatedTicket.rows);
-
-    if (updatedTicket.rowCount === 0) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({
-        success: false,
-        message: "No ticket record found to update.",
-      });
-    }
-    // Debug: Confirm row updates with SELECT query
-    const debugQuery = `SELECT * FROM tickets WHERE TRIM(booking_id) = TRIM($1)`;
-    const debugResult = await client.query(debugQuery, [bookingId.trim()]);
-    console.log("Debug Matching Ticket Record After Update:", debugResult.rows);
-
-    // Commit transaction if both updates succeed
+    // Commit transaction after successful update
     await client.query("COMMIT");
 
     // Set the updated booking ID as a cookie
@@ -120,15 +77,15 @@ export const createOrder = async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Failed to create Razorpay order and update booking and ticket tables",
+      message: "Failed to create Razorpay order and update booking table",
       error: error.message,
     });
   }
 };
 
 
+import { generateTickets } from '../services/ticketService.js';
 
-// Verify payment
 export const verifyPayment = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.cookies;
 
@@ -156,12 +113,8 @@ export const verifyPayment = async (req, res) => {
 
     await client.query("BEGIN");
 
-    // Check if the booking exists and retrieve the event_id
-    const bookingQuery = `
-      SELECT booking_id, event_id 
-      FROM bookings 
-      WHERE booking_id = $1
-    `;
+    // Fetch booking and event details
+    const bookingQuery = `SELECT * FROM bookings WHERE booking_id = $1`;
     const bookingResult = await client.query(bookingQuery, [razorpay_order_id]);
 
     if (bookingResult.rows.length === 0) {
@@ -172,9 +125,19 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    const { event_id } = bookingResult.rows[0]; // Get event_id from the bookings table
+    const booking = bookingResult.rows[0];
+    const { event_id, ticket_types, user_id, booking_id } = booking;
+  console.log("check direct booking", booking);
+    let parsedTicketTypes;
+    try {
+      parsedTicketTypes = typeof ticket_types === "string" ? JSON.parse(ticket_types) : ticket_types;
+    } catch (error) {
+      throw new Error("Invalid ticket_types format. Expected valid JSON.");
+    }
 
-    // Insert payment details with event_id
+    console.log("parsed ticket type ", parsedTicketTypes);
+
+    // Insert payment details
     const paymentInsertQuery = `
       INSERT INTO payments (
         booking_id, event_id, amount, status, payment_method, transaction_id, payment_gateway
@@ -183,12 +146,12 @@ export const verifyPayment = async (req, res) => {
       RETURNING *
     `;
     const paymentResult = await client.query(paymentInsertQuery, [
-      razorpay_order_id, // booking_id
-      event_id, // event_id
-      paymentDetails.amount / 100, // Convert paisa to INR
+      razorpay_order_id,
+      event_id,
+      paymentDetails.amount / 100,
       paymentDetails.status,
       paymentDetails.method,
-      paymentDetails.id, // transaction_id
+      paymentDetails.id,
       "razorpay",
     ]);
 
@@ -200,29 +163,38 @@ export const verifyPayment = async (req, res) => {
       RETURNING *
     `;
     const bookingUpdate = await client.query(bookingUpdateQuery, [
-      "confirmed",
+      "confirmed", // Change status to 'confirmed'
       razorpay_order_id,
     ]);
 
-    // Update ticket status
-    const ticketUpdateQuery = `
-      UPDATE tickets
-      SET status = 'confirmed'
-      WHERE booking_id = $1
-      RETURNING *
-    `;
-    const ticketUpdate = await client.query(ticketUpdateQuery, [
-      razorpay_order_id,
-    ]);
+    const ticket_count = bookingUpdate.rows[0].ticket_quantity;
+
+    console.log("Data before ticket generation", {
+      booking_id,
+      event_id,
+      ticket_types: parsedTicketTypes,
+      ticket_count,
+      user_id,
+    });
+
+    // Generate and insert tickets after payment
+    const tickets = await generateTickets({
+      booking_id,
+      event_id,
+      ticket_types: parsedTicketTypes,
+      ticket_count,
+      user_id,
+    });
+    console.log("Ticket is bought successfully", tickets);
 
     await client.query("COMMIT");
 
     res.status(200).json({
       success: true,
-      message: "Payment verified and booking updated successfully.",
+      message: "Payment verified, booking updated, and tickets generated successfully.",
       payment: paymentResult.rows[0],
       booking: bookingUpdate.rows[0],
-      tickets: ticketUpdate.rows,
+      tickets,
     });
   } catch (error) {
     console.error("Error in verifyPayment:", error);
@@ -236,6 +208,31 @@ export const verifyPayment = async (req, res) => {
   }
 };
 
+
+// const generateTicketsAfterPayment = async (ticketTypes, bookingId, eventId, userId) => {
+//   const tickets = [];
+//   for (const ticketType of ticketTypes) {
+//     for (let i = 0; i < ticketType.quantity; i++) {
+//       const ticketId = uuidv4(); // Generate a unique ticket ID
+//       tickets.push(ticketId);
+
+//       const ticketInsertQuery = `
+//         INSERT INTO tickets (ticket_id, booking_id, event_id, user_id, ticket_type, status)
+//         VALUES ($1, $2, $3, $4, $5, $6)
+//       `;
+//       await client.query(ticketInsertQuery, [
+//         ticketId,
+//         bookingId,
+//         eventId,
+//         userId,
+//         ticketType.type,
+//         'confirmed', // Ticket status set to 'confirmed'
+//       ]);
+//     }
+//   }
+
+//   return tickets;
+// };
 export const processRefund = async (req, res) => {
   try {
     const { paymentId, refundAmount } = req.body;

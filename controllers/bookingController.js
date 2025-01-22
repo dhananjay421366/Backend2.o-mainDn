@@ -1,16 +1,26 @@
 import CryptoJs from "crypto-js";
 import {  createBooking, getBookingDetails, listUserBookings } from "../services/bookingService.js";
 import db from '../config.js';
-
+import { generateBookingId } from "../services/ticketService.js";
+// Controller function to handle booking creation
 export const create = async (req, res) => {
   try {
+    const booking_id = generateBookingId(); // Generate a unique booking ID
     const bookingData = req.body; // Get booking data from the request body
-    const booking = await createBooking(bookingData); // Create the booking
-    res.status(201).json({ message: 'Booking created successfully.', booking }); // Respond with success message and booking data
+
+    const booking = await createBooking(bookingData, booking_id); // Create the booking
+
+    res.status(201).json({
+      message: 'Booking created successfully.',
+      booking,
+    });
   } catch (error) {
-    res.status(400).json({ error: error.message }); // Respond with error message if creation fails
+    console.error("Error creating booking:", error.message);
+    res.status(400).json({ error: error.message });
   }
 };
+
+
 
 // Controller function to get details of a specific booking
 export const getDetails = async (req, res) => {
