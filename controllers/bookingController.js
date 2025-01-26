@@ -1,27 +1,29 @@
 import CryptoJs from "crypto-js";
-import {  createBooking, getBookingDetails, listUserBookings } from "../services/bookingService.js";
+import { createBooking, getBookingDetails, listUserBookings } from "../services/bookingService.js";
 import db from '../config.js';
 import { generateBookingId } from "../services/ticketService.js";
+
 // Controller function to handle booking creation
 export const create = async (req, res) => {
   try {
     const booking_id = generateBookingId(); // Generate a unique booking ID
     const bookingData = req.body; // Get booking data from the request body
 
-    const booking = await createBooking(bookingData, booking_id); // Create the booking
+    // Create the booking and get the result
+    const booking = await createBooking(bookingData, booking_id);
 
+    // Send success response
     res.status(201).json({
-      message: 'Booking created successfully.',
+      success: true,
+      message: "Booking created successfully.",
       booking,
     });
   } catch (error) {
-    console.error("Error creating booking:", error.message);
-    res.status(400).json({ error: error.message });
+    // Handle errors
+    console.error("Error in create:", error);
+    res.status(400).json({ success: false, message: error.message });
   }
 };
-
-
-
 // Controller function to get details of a specific booking
 export const getDetails = async (req, res) => {
   try {
@@ -67,7 +69,7 @@ export const encrypt = async (req, res) => {
     // Encrypting sensitive data
     const encrypt_organiser_id = encrypttext(organiser_id, aliceSecretkey);
     const encrypt_Account_name = encrypttext(Account_name, aliceSecretkey);
-    console.log(encrypt_Account_name)
+
     const encrypt_Account_number = encrypttext(Account_number, aliceSecretkey);
     const encrypt_IFSC = encrypttext(IFSC, aliceSecretkey);
     // Insert encrypted data into the database
@@ -93,15 +95,15 @@ export const encrypt = async (req, res) => {
 
 // Decrypt Text Function
 function decrypttext(cipherText, bobSecretkey) {
-  console.log("cipherText", cipherText)
+
   try {
     const bytes = CryptoJs.AES.decrypt(cipherText, bobSecretkey);
-    console.log("bytes", bytes.toString(CryptoJs.enc.Utf8))
+
 
     if (bytes > 0) {
-      console.log("bytes", bytes)
+
       const decryptdata = bytes.toString(CryptoJs.enc.Utf8);
-      console.log(decryptdata)
+
       return decryptdata;
     } else {
       throw new Error("Invalid decryption data.");
@@ -113,12 +115,11 @@ function decrypttext(cipherText, bobSecretkey) {
 
 // Decrypt Data Controller
 export const decrypt = async (req, res) => {
-  console.log("hello")
-  console.log(req.body)
+
   const { settlement_id } = req.body
   try {
     const data = await db.query("select * from bankdetail where settlement_id = ($1)", [settlement_id])
-    console.log("data", data.rows[0])
+
     if (!data) {
       return res.status(400).json({ error: "No data provided for decryption." });
     }
@@ -128,7 +129,6 @@ export const decrypt = async (req, res) => {
     const decryptdata_IFSC = decrypttext(data.rows[0].ifsc, bobSecretkey);
     const decryptdata = { decryptdata_organiser_id, decryptdata_Account_name, decryptdata_Account_number, decryptdata_IFSC }
 
-    console.log("decryptdata", decryptdata)
     res.json({ message: 'Data decrypted successfully.', decryptedData: decryptdata });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -137,27 +137,27 @@ export const decrypt = async (req, res) => {
 
 export const encrypt2 = async (req, res) => {
   const data = req.body
-  console.log("data", data)
+
   var ciphertext = CryptoJs.AES.encrypt(JSON.stringify(data), aliceSecretkey).toString();
-  console.log(ciphertext)
+
   await db.query(
     "INSERT INTO settlement (settlement_data) VALUES ($1)",
     [ciphertext]
   );
-  console.log("hello")
+
 
   res.send(ciphertext);
 }
 
 export const dcrypt2 = async (req, res) => {
-  console.log("req.body", req.body.settlement_id)
+
   const { settlement_id } = req.body
   try {
     const data = await db.query("select * from settlement where settlement_id = ($1)", [settlement_id])
-    console.log(data.rows[0])
+
     var bytes = CryptoJs.AES.decrypt(data.rows[0].settlement_data, bobSecretkey);
     var decryptedData = JSON.parse(bytes.toString(CryptoJs.enc.Utf8));
-    console.log("decryptData", decryptedData)
+
     res.status(200).json(decryptedData)
   } catch (err) {
     res.status(400).json({ error: err });
@@ -222,13 +222,12 @@ export const CancelBooking = async (req, res) => {
       });
     } catch (error) {
       await client.query("ROLLBACK");
-      console.error("Error canceling booking:", error.message);
+
       res.status(500).json({ error: "An error occurred while canceling the booking" });
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error("Database connection error:", error.message);
     res.status(500).json({ error: "Database connection error" });
   }
 };
@@ -263,7 +262,7 @@ export const CheckTicket = async (req, res) => {
         : "No tickets are available for this event.",
     });
   } catch (error) {
-    console.error("Error checking ticket availability:", error.message);
+
     res.status(500).json({ error: "An error occurred while checking ticket availability" });
   }
 };

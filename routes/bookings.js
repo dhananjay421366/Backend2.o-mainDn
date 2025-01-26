@@ -2,6 +2,7 @@
 import express from 'express';
 import { create, getDetails, listUserBookings1, encrypt, decrypt, encrypt2, dcrypt2, CancelBooking, CheckTicket } from '../controllers/bookingController.js';
 import { authenticate_user, authenticate } from '../middlewares/authMiddleware.js';
+import { toggleBookingStatus } from '../services/bookingService.js';
 
 const router = express.Router(); // Create an Express router
 
@@ -15,7 +16,10 @@ router.get('/:id', getDetails);
 router.get('/user/:userId', listUserBookings1);
 
 //Route  to   cancel  bookings
-router.post("/cancel-booking",CancelBooking);
+router.post("/cancel-booking", CancelBooking);
+
+// toogle booking status 
+router.put("/events/:event_id/booking-status", toggleBookingStatus);
 
 //Route to  check tickets availability
 router.post("/check-availability", CheckTicket)

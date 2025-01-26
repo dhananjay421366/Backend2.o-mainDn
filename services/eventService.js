@@ -49,8 +49,6 @@ import client from '../config.js';
 
 // Service function to create an event in the database
 export const createEvent = async (organizerId, eventData, finalEventPoster, tickets) => {
-  console.log('Event Data:', eventData);
-
   const {
     name,
     description,
@@ -62,10 +60,12 @@ export const createEvent = async (organizerId, eventData, finalEventPoster, tick
     city,
     venue,
     available_tickets,
-    category
+    category,
   } = eventData;
 
-  // Insert event data into the `events` table and return the created event
+  // Set available_tickets to NULL for unlimited tickets
+  const availableTickets = available_tickets && available_tickets > 0 ? available_tickets : null;
+
   const result = await client.query(
     `INSERT INTO events 
       (organizer_id, name, description, type, date, start_time, end_time, state, city, venue, available_tickets, category, event_poster, tickets) 
@@ -82,14 +82,14 @@ export const createEvent = async (organizerId, eventData, finalEventPoster, tick
       state,
       city,
       venue,
-      available_tickets,
+      availableTickets, // NULL for unlimited tickets
       category,
-      finalEventPoster, // Uploaded poster URL
-      JSON.stringify(tickets) // Save the tickets as a JSON string
+      finalEventPoster,
+      JSON.stringify(tickets),
     ]
   );
 
-  return result.rows[0]; // Return the created event
+  return result.rows[0];
 };
 
 // Service function to check if the organizer exists in the database

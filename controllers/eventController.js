@@ -51,6 +51,7 @@ dotenv.config();
 //     res.status(500).json({ error: error.message || 'An error occurred while creating the event.' });
 //   }
 // };
+
 export const create = async (req, res) => {
   try {
     const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user
