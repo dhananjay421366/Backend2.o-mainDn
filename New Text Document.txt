@@ -91,7 +91,7 @@ ON tickets FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
 /// updated tables schema 
 CREATE TABLE events (
-    id SERIAL PRIMARY KEY,
+    event_id SERIAL PRIMARY KEY,
     organizer_id INTEGER REFERENCES organizers(id),
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
@@ -114,16 +114,16 @@ CREATE TABLE events (
 );
 
 CREATE TABLE bookings (
-    booking_id SERIAL PRIMARY KEY,
-    event_id INTEGER NOT NULL REFERENCES events(id),
-    user_id INTEGER NOT NULL,
-    ticket_quantity INTEGER NOT NULL,
-    ticket_type VARCHAR(50),
-    status VARCHAR(50) DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  booking_id VARCHAR(255) PRIMARY KEY,          -- Unique identifier for each booking (VARCHAR)
+  event_id INTEGER NOT NULL,                    -- Foreign key to the events table
+  user_id INTEGER NOT NULL,                     -- Foreign key to the users table
+  ticket_types JSONB NOT NULL,                  -- JSON array containing the ticket types and quantities
+  ticket_quantity INTEGER NOT NULL,             -- Total number of tickets in the booking
+  status VARCHAR(20) NOT NULL DEFAULT 'pending', -- Booking status (e.g., pending, confirmed, canceled)
+  booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Date and time when the booking was made
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the booking was created
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the booking was last updated
 );
-
 CREATE TABLE organizers (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,

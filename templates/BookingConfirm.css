@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&display=swap');
+body {
+  font-family: Arial, sans-serif;
+
+  margin: 0;
+  
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+   
+}
+
+.email-header {
+  background-color: #4C4C4C;
+  padding: 2rem;
+  text-align: center;
+}
+
+.email-header img {
+  max-width: 200px;
+}
+
+.ticket {
+  background-color: white;
+  border-radius: 15px;
+  padding: 40px 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.alternative-link {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+.ticket-link {
+  color: #6200ee;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.ticket-link:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  color: #6200ee;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.confirmation {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.print-btn {
+  background-color: #6200ee;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: block;
+  margin: 20px auto;
+}
+.print-btn:hover {
+  transform: translateY(-3px);
+  
+}
+
+.contact-footer {
+  background-color: #ecf0f1;
+  padding: 2rem;
+  text-align: center;
+  font-family: "Mukta", sans-serif;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.social-links a {
+  color: #7f8c8d;
+  transition: color 0.3s;
+}
+
+.social-links a:hover {
+  color: #3498db;
+}
+
+.copyright-bar {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+}

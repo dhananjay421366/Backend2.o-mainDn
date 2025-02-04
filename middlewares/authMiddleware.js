@@ -15,7 +15,7 @@ export const authenticate = (req, res, next) => {
     console.log('Received Token:', token); // Log the received token
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
     req.user = decoded; // Attach the user payload to the request
-    console.log(req.user);
+    console.log("this is an user after login ", req.user);
     next(); // Proceed to the next middleware
   } catch (error) {
     console.error('JWT verification error:', error.message);

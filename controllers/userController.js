@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import client from '../config.js';
 import dotenv from 'dotenv';
 dotenv.config();
-import { sendVerificationEmail, sendresetpassword } from '../services/emailService.js';
+import { sendVerificationEmail, sendResetPassword } from '../services/emailService.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 const saltRounds = 10;
@@ -147,7 +147,7 @@ export const forgot_password1 = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await sendresetpassword(email, link);
+    await sendResetPassword(email, link);
     return res.status(200).json({ message: 'Password reset link sent' });
   } catch (error) {
     console.error(error);

@@ -11,7 +11,6 @@ export const create = async (req, res) => {
 
     // Create the booking and get the result
     const booking = await createBooking(bookingData, booking_id);
-
     // Send success response
     res.status(201).json({
       success: true,

@@ -8,7 +8,7 @@ import {
 } from "../services/authService.js";
 import {
   sendVerificationEmail,
-  sendresetpassword,
+  sendResetPassword,
   sendNotificationEmail,
 } from "../services/emailService.js";
 import client from "../config.js";
@@ -311,7 +311,7 @@ export const forgot_password1 = async (req, res) => {
     if (link === "User not found")
       return sendErrorResponse(res, 404, "You entered the wrong email.");
 
-    await sendresetpassword(email, link);
+    await sendResetPassword(email, link);
     res.status(200).json(`${link}`);
   } catch (error) {
     sendErrorResponse(res, 400, "We cannot generate a link.");

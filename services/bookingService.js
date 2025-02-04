@@ -1,9 +1,10 @@
 // Import database client configuration
 import client from '../config.js';
+import { sendNotificationEmail, sendVerificationEmail } from './emailService.js';
 
 
-// Function to create a booking and insert it into the database
-export const createBooking = async ({ event_id, user_id, ticket_types }, booking_id) => {
+// // Function to create a booking and insert it into the database
+export const createBooking = async ({ event_id, user_id, ticket_types, user_email, user_name }, booking_id) => {
   if (!event_id || !user_id || !ticket_types?.length) {
     throw new Error("Missing required booking data.");
   }
@@ -12,9 +13,9 @@ export const createBooking = async ({ event_id, user_id, ticket_types }, booking
     // Calculate total ticket quantity
     const ticket_quantity = ticket_types.reduce((total, { quantity }) => total + quantity, 0);
 
-    // Fetch event details: available tickets and booking status
+    // Fetch event details: available tickets, booking status, and event date
     const eventQuery = `
-      SELECT available_tickets, booking_status_live 
+      SELECT name, available_tickets, booking_status_live, date
       FROM events 
       WHERE event_id = $1
     `;
@@ -24,7 +25,7 @@ export const createBooking = async ({ event_id, user_id, ticket_types }, booking
       throw new Error("Event not found.");
     }
 
-    const { available_tickets: availableTickets, booking_status_live } = eventResult.rows[0];
+    const { name: eventName, available_tickets: availableTickets, booking_status_live, event_date } = eventResult.rows[0];
 
     // Check if booking is live
     if (!booking_status_live) {
@@ -38,8 +39,8 @@ export const createBooking = async ({ event_id, user_id, ticket_types }, booking
 
     // Insert booking data into the database
     const insertBookingQuery = `
-      INSERT INTO bookings (booking_id, event_id, user_id, ticket_types, ticket_quantity, status)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO bookings (booking_id, event_id, user_id, event_date, user_email, user_name, ticket_types, ticket_quantity, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
     `;
 
@@ -47,12 +48,34 @@ export const createBooking = async ({ event_id, user_id, ticket_types }, booking
       booking_id,
       event_id,
       user_id,
-      ticket_types,
+      event_date,  // Pass event_date here
+      user_email,
+      user_name,
+      JSON.stringify(ticket_types),
       ticket_quantity,
       "pending",
     ];
 
     const bookingResult = await client.query(insertBookingQuery, bookingValues);
+
+    // Send confirmation email
+    const emailSubject = "Booking Confirmation ✔";
+    const emailContent = `
+      Hi ${user_name},
+
+      Thank you for booking your tickets for ${eventName}!
+
+      Booking Details:
+      - Booking ID: ${booking_id}
+      - Event: ${eventName}
+      - Tickets: ${ticket_quantity}
+
+      We look forward to seeing you at the event.
+
+      Best regards,
+      Event Team
+    `;
+    await sendNotificationEmail(user_email, emailSubject, emailContent);
 
     // Return the created booking
     return bookingResult.rows[0];
@@ -61,6 +84,7 @@ export const createBooking = async ({ event_id, user_id, ticket_types }, booking
     throw new Error(error.message || "Internal Server Error");
   }
 };
+
 // Toggle booking status
 export const toggleBookingStatus = async (req, res) => {
   const { event_id } = req.params;
@@ -106,13 +130,6 @@ export const toggleBookingStatus = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
-
 
 export const getBookingDetails = async (booking_id) => {
   // Fetch booking details by booking ID

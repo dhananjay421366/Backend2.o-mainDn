@@ -26,7 +26,6 @@ export const checkPaymentStatusRazorpay = async (paymentId) => {
     } else {
       console.log(`Payment Status: ${payment.status}`);
     }
-    console.log(payment, "PaymentServices");
     return payment; // Return the payment details
   } catch (error) {
     console.error('Error fetching payment status:', error);

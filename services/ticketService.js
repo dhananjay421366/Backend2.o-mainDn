@@ -5,7 +5,7 @@ import bwipjs from "bwip-js";
 
 // Function to generate tickets with QR codes and barcodes
 export const generateTickets = async ({ booking_id, event_id, ticket_types, ticket_count, user_id }) => {
-  console.log("Data after ticket generation", booking_id, event_id, ticket_types, ticket_count, user_id);
+
 
   // Validate required fields
   if (!booking_id || !event_id || !user_id || !ticket_count || !ticket_types || !ticket_types.length) {
@@ -32,15 +32,19 @@ export const generateTickets = async ({ booking_id, event_id, ticket_types, tick
 
   // Destructure event and user data from the result
   const { event_name, venue, date, location, city, state, category, event_poster, user_name } = result.rows[0];
-  console.log("Username is ", user_name);
+
 
   const ticketsWithCodes = [];
   const values = [];
   const placeholders = [];
   let placeholderIndex = 1;
 
-  // Parse ticket types from the input
-  const parsedTicketTypes = ticket_types.map(ticketType => JSON.parse(ticketType)); // Ensure we parse the JSON correctly
+  // Check if ticket_types is already an object, otherwise parse it
+  const parsedTicketTypes = ticket_types.map(ticketType => {
+    // Check if it's a string or already an object
+    return typeof ticketType === 'string' ? JSON.parse(ticketType) : ticketType;
+  });
+
   console.log("Parsed ticket types:", parsedTicketTypes);
 
   // Iterate over each ticket type (VIP or General)
