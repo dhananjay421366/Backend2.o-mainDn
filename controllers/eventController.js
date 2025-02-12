@@ -1,57 +1,10 @@
 // Import necessary functions from the eventService module
-import { createEvent, listEvents, getEventDetails, list_of_all_events, updateEvent, findEventById } from '../services/eventService.js';
 import dotenv from 'dotenv';
 import client from '../config.js';
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { createEvent, findEventById, getEventDetails, list_of_all_events, listEvents, updateEvent } from '../services/eventService.js';
 import { findOrganizerById } from '../services/organizerServicre.js';
-import { z } from 'zod';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 dotenv.config();
-
-// export const create = async (req, res) => {
-//   try {
-//     const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user
-//     console.log('Organizer ID:', organizerId);
-
-//     // Check if the authenticated user exists in the organizers table
-//     const organizer = await findOrganizerById(organizerId);
-//     if (!organizer) {
-//       return res.status(403).json({ message: 'Forbidden. Only organizers can create events.' });
-//     }
-
-//     const eventData = req.body; // Event data from the request body
-//     console.log('Event Data:', eventData);
-
-
-//     // Check if an event poster is uploaded
-//     const event_poster = req.files?.event_poster?.[0];
-//     if (!event_poster) {
-//       return res.status(400).json({ message: 'Event poster image is required.' });
-//     }
-
-//     const localFilePath = event_poster.path; // File path from multer
-//     console.log('Local File Path:', localFilePath);
-
-//     // Upload the image to Cloudinary
-//     const uploadedImage = await uploadOnCloudinary(localFilePath);
-//     if (!uploadedImage || !uploadedImage.url) {
-//       return res.status(500).json({ message: 'Failed to upload event poster to Cloudinary.' });
-//     }
-
-//     const finalEventPoster = uploadedImage.url;
-//     console.log('Uploaded Image URL:', finalEventPoster);
-
-//     // Create the event in the database
-//     const event = await createEvent(organizerId, eventData, finalEventPoster);
-//     console.log('Event Created:', event);
-
-//     // Respond with success message and created event data
-//     res.status(201).json({ message: 'Event created successfully.', event });
-//   } catch (error) {
-//     console.error('Error creating event:', error.message);
-//     res.status(500).json({ error: error.message || 'An error occurred while creating the event.' });
-//   }
-// };
-
 export const create = async (req, res) => {
   try {
     const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user

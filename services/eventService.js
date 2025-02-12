@@ -92,6 +92,63 @@ export const createEvent = async (organizerId, eventData, finalEventPoster, tick
   return result.rows[0];
 };
 
+// Service function to create an event in the database
+// export const createEvent = async (organizerId, eventData, finalEventPoster, tickets) => {
+//   const {
+//     name,
+//     description,
+//     type,
+//     date,
+//     start_time,
+//     end_time,
+//     state,
+//     city,
+//     venue,
+//     available_tickets,
+//     category,
+//   } = eventData;
+
+//   // Ensure tickets data is an array and properly formatted
+//   if (!Array.isArray(tickets) || tickets.length === 0) {
+//     throw new Error("At least one ticket type with a price must be provided.");
+//   }
+
+//   // Validate ticket structure
+//   for (const ticket of tickets) {
+//     if (!ticket.type || !ticket.price || ticket.price <= 0) {
+//       throw new Error("Each ticket must have a valid type and price greater than zero.");
+//     }
+//   }
+
+//   // Set available_tickets to NULL for unlimited tickets
+//   const availableTickets = available_tickets && available_tickets > 0 ? available_tickets : null;
+
+//   const result = await client.query(
+//     `INSERT INTO events 
+//       (organizer_id, name, description, type, date, start_time, end_time, state, city, venue, available_tickets, category, event_poster, tickets) 
+//       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+//       RETURNING *`,
+//     [
+//       organizerId,
+//       name,
+//       description,
+//       type,
+//       date,
+//       start_time,
+//       end_time,
+//       state,
+//       city,
+//       venue,
+//       availableTickets, // NULL for unlimited tickets
+//       category,
+//       finalEventPoster,
+//       JSON.stringify(tickets), // Store tickets as JSON in DB
+//     ]
+//   );
+
+//   return result.rows[0];
+// };
+
 // Service function to check if the organizer exists in the database
 export const findOrganizerById = async (organizerId) => {
   const result = await client.query(

@@ -4,10 +4,11 @@ import crypto from 'crypto';
 import dotenv from 'dotenv';
 import client from '../config.js';
 import { instance } from "../config2.js";
-import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
 import { sendBookingConfirmationEmail } from '../services/emailService.js';
+import { checkPaymentStatusRazorpay } from "../services/paymentService.js";
 dotenv.config();
-// Create an order
+
+// // Create an order
 export const createOrder = async (req, res) => {
   try {
     // Destructure and provide default values for request body
@@ -18,7 +19,7 @@ export const createOrder = async (req, res) => {
       Fullname = "Dhananjay",
       Email = "nimbalkardhananjay349@gmail.com",
       Mobile_No = 7350304620,
-      bookingId = "bookedNCNHXR4W7",
+      bookingId = "bookedI4J71SVBA",
     } = req.body;
 
     // Create Razorpay order options
@@ -88,7 +89,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
- // Verify payment
+// Verify payment
 export const verifyPayment = async (req, res) => {
   const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.cookies;
 
@@ -220,7 +221,7 @@ export const verifyPayment = async (req, res) => {
       userPhone: booking.user_phone || 'Not Provided',
       ticketType: formattedTicketTypes,
       amount: paymentDetails.amount / 100,
-      tickets:tickets
+      tickets: tickets
     };
     console.log("Booking final data", bookingDetails);
 
@@ -314,6 +315,66 @@ export const processRefund = async (req, res) => {
     });
   }
 };
+
+export const getTransactionHistory = async (req, res) => {
+  try {
+    const { userId, email } = req.body;
+
+    if (!userId && !email) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID or Email is required to fetch transaction history.",
+      });
+    }
+
+    // Start SQL query preparation
+    let query = `
+      SELECT 
+        p.transaction_id, p.amount, p.status, p.payment_method, p.payment_gateway, 
+        r.refund_id, r.amount AS refund_amount, r.status AS refund_status,
+        b.booking_id, b.event_id, b.user_email, b.user_name
+      FROM payments p
+      LEFT JOIN refunds r ON p.transaction_id = r.transaction_id
+      LEFT JOIN bookings b ON p.booking_id = b.booking_id
+      WHERE `;
+
+    const queryParams = [];
+
+    if (userId) {
+      query += ` b.user_id = $1 `;
+      queryParams.push(userId);
+    } else if (email) {
+      query += ` b.user_email = $1 `;
+      queryParams.push(email);
+    }
+
+    // Execute the query
+    const result = await client.query(query, queryParams);
+
+    // Check if transactions exist
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No transaction history found for the given user.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Transaction history fetched successfully.",
+      transactions: result.rows,
+    });
+
+  } catch (error) {
+    console.error("Error fetching transaction history:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch transaction history.",
+      error: error.message,
+    });
+  }
+};
+
 
 
 

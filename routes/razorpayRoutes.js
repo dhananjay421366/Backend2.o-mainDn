@@ -1,5 +1,5 @@
 import express from 'express';
-import { createOrder, processRefund, verifyPayment } from '../controllers/razorpayController.js';
+import { createOrder, getTransactionHistory, processRefund, verifyPayment } from '../controllers/razorpayController.js';
 import { authenticate } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
@@ -8,5 +8,6 @@ const router = express.Router();
 router.get('/', createOrder)
 router.post('/pay-verify', verifyPayment);
 router.post('/refund-payment', processRefund);
+router.get('/transactions', getTransactionHistory);
 
 export default router;
