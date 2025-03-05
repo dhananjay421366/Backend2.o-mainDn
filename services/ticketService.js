@@ -60,31 +60,7 @@ export const generateTickets = async ({ booking_id, event_id, ticket_types, tick
     for (let i = 0; i < quantity; i++) {
       const ticketId = generateTicketId();
 
-      // // Prepare data for QR code and barcode
-      // const qrCodeData = {
-      //   ticket_id: ticketId,
-      //   booking_id,
-      //   event_id,
-      // };
-
-      // // Generate QR code and barcode asynchronously
-      // const qrCodePromise = QRCode.toDataURL(JSON.stringify(qrCodeData));
-      // const barcodePromise = new Promise((resolve, reject) => {
-      //   bwipjs.toBuffer(
-      //     {
-      //       bcid: 'code128',
-      //       text: ticketId && event_id,
-      //       scale: 3,
-      //       height: 10,
-      //       includetext: true,
-      //       textxalign: 'center',
-      //     },
-      //     (err, png) => {
-      //       if (err) reject(err);
-      //       resolve('data:image/png;base64,' + png.toString('base64'));
-      //     }
-      //   );
-      // });
+  
       // Prepare data for QR code and barcode
       const qrCodeData = {
         ticket_id: ticketId,

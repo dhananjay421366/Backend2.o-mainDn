@@ -5,6 +5,7 @@ import { createEvent, findEventById, getEventDetails, list_of_all_events, listEv
 import { findOrganizerById } from '../services/organizerServicre.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 dotenv.config();
+
 export const create = async (req, res) => {
   try {
     const organizerId = req.user?.organizer_id; // Organizer ID from the authenticated user

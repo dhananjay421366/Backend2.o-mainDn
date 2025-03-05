@@ -125,7 +125,7 @@ CREATE TABLE bookings (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the booking was last updated
 );
 CREATE TABLE organizers (
-    id SERIAL PRIMARY KEY,
+    organizer_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     phonenumber VARCHAR(255),
@@ -143,7 +143,7 @@ CREATE TABLE organizers (
 );
 
 CREATE TABLE payments (
-    id SERIAL PRIMARY KEY,
+    payment_id SERIAL PRIMARY KEY,
     booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
     amount NUMERIC NOT NULL,
     status VARCHAR(20) DEFAULT 'pending',
@@ -155,7 +155,7 @@ CREATE TABLE payments (
 );
 
 CREATE TABLE tickets (
-    id SERIAL PRIMARY KEY,
+    ticket_id SERIAL PRIMARY KEY,
     booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
     event_id INTEGER REFERENCES events(id) ON  ticket_types VARCHAR(50)[] NOT NULL DEFAULT '{}'DELETE CASCADE,
    ,
@@ -164,7 +164,7 @@ CREATE TABLE tickets (
 );
 
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
+    user_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     phone_number VARCHAR(20),
     password_hash TEXT NOT NULL,

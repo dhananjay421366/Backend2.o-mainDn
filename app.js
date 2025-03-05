@@ -18,13 +18,15 @@ import bankAccountVerificationRoutes from './routes/bankAccountVerificationRoute
 import transferRoutes from './routes/transferRoutes.js';
 import cashfreeRoutes from './routes/CashfreeRoutes.js';
 import razorpayRoutes from './routes/razorpayRoutes.js';
+import { webhookRouter } from './routes/webhookRoutes.js';
+
 
 dotenv.config();
 
 const app = express();
 
 // Global variables to store the selected payment gateway and mode
-export let selectedGateway = 'razorpay'; // Default to Cashfree
+export let selectedGateway = 'cashfree'; // Default to Cashfree
 let gatewayMode = 'test'; // Default to test mode (can be 'live' or 'test')
 
 // Middleware
@@ -45,6 +47,27 @@ app.use('/notifications', notificationRoutes);
 app.use('/api/beneficiaries', beneficiaryRoutes);
 app.use('/api/verification', bankAccountVerificationRoutes);
 app.use('/api/transfer', transferRoutes);
+app.use('/api/webhook', webhookRouter);
+
+
+// Webhook endpoint
+app.post("/cashfree/test/notify", (req, res) => {
+  console.log("Webhook received:", req.body); // Log the webhook data
+
+  // Validate the request from Cashfree (Optional but recommended)
+  if (!req.body || !req.body.orderId) {
+    return res.status(400).json({ success: false, message: "Invalid payload" });
+  }
+
+  // Process the payment status
+  const { orderId, txStatus, paymentMode, referenceId, txMsg, txTime } = req.body;
+
+  // You should update the payment status in your database here
+  console.log(`Payment Update: Order ${orderId}, Status: ${txStatus}`);
+
+  // Send response back to Cashfree (Very Important)
+  res.status(200).json({ success: true, message: "Webhook received successfully" });
+});
 
 const dynamicRoutes = {};
 
@@ -91,6 +114,7 @@ setupPaymentGatewayRoutes();
 
 // Toggle payment gateway
 const togglePaymentGateway = (req, res) => {
+  const { gateway } = req.body;
   // Toggle the selected gateway
   if (selectedGateway === 'cashfree') {
     selectedGateway = 'razorpay';

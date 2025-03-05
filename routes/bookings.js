@@ -1,7 +1,6 @@
 // Import necessary modules
 import express from 'express';
-import { create, getDetails, listUserBookings1, encrypt, decrypt, encrypt2, dcrypt2, CancelBooking, CheckTicket } from '../controllers/bookingController.js';
-import { authenticate_user, authenticate } from '../middlewares/authMiddleware.js';
+import { CancelBooking, CheckTicket, create, dcrypt2, decrypt, encrypt, encrypt2, getDetails, listUserBookings1 } from '../controllers/bookingController.js';
 import { toggleBookingStatus } from '../services/bookingService.js';
 
 const router = express.Router(); // Create an Express router

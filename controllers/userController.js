@@ -77,14 +77,14 @@ export const verifyEmail = async (req, res) => {
 // Login User
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  console.log(req.user);
+
   try {
     // Validate input data
     if (!email || !password) {
       return res.status(400).json({ error: 'Invalid input data' });
     }
 
-    // Query for user by email
+    // Check if the user exists
     const userResult = await client.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = userResult.rows[0];
     if (!user) return res.status(403).json({ error: 'Authentication failed' });
@@ -93,8 +93,7 @@ export const login = async (req, res) => {
     if (!user.verified) {
       const verification_token = jwt.sign({ email }, process.env.SECRET_KEY, { expiresIn: '1d' });
       const verification_link = `${process.env.BACKEND_URL}/users/verify/${verification_token}`;
-      await sendVerificationEmail(user.email, verification_link);
-
+      await sendVerificationEmail(email, verification_link);
       return res.status(400).json({ error: 'Email not verified. A verification email has been sent.' });
     }
 
@@ -102,12 +101,17 @@ export const login = async (req, res) => {
     const match = await bcrypt.compare(password, user.password_hash);
     if (!match) return res.status(403).json({ error: 'Authentication failed' });
 
-    // Generate JWT token
-    const token = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1d' });
+    // Generate a new JWT token
+    const token = jwt.sign({ user_id: user.user_id, email: user.email }, process.env.SECRET_KEY, {
+      expiresIn: '1d',
+    });
     res.cookie('token', token);
 
-    // Update last login timestamp
-    await client.query('UPDATE users SET updated_at = NOW() WHERE user_id = $1', [user.user_id]);
+    // Update user's token and last login time in the database
+    await client.query(
+      'UPDATE users SET verification_token = $1, updated_at = NOW() WHERE user_id = $2',
+      [token, user.user_id]
+    );
 
     return res.json({
       message: 'Login successful',
@@ -122,9 +126,11 @@ export const login = async (req, res) => {
     });
   } catch (err) {
     console.error('Error during login:', err);
-    return res.status(500).json({ error: 'An internal server error occurred' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
 
 // Logout User
 export const logout = async (req, res) => {
@@ -158,10 +164,10 @@ export const forgot_password1 = async (req, res) => {
 // Reset Password
 export const reset_password = async (req, res) => {
   const { password } = req.body;
-  const { user_id, token } = req.params;
+  const { id, token } = req.params;
 
   try {
-    await verify_token_reset_password(user_id, token, password);
+    await verify_token_reset_password(id, token, password);
     return res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
     console.error(error);
@@ -253,16 +259,20 @@ const forgot_password = async (email) => {
 };
 
 // Reset Password Verification Helper
-const verify_token_reset_password = async (user_id, token, password) => {
-  const result = await client.query('SELECT * FROM users WHERE user_id = $1', [user_id]);
+const verify_token_reset_password = async (id, token, password) => {
+  const result = await client.query('SELECT * FROM users WHERE user_id = $1', [id]);
   const user = result.rows[0];
-  const key = process.env.SECRET_KEY + user.password_hash;
+  console.log(user);
+  const key = process.env.SECRET_KEY;
+  console.log("the key is :", key);
+  console.log("the token is :", token);
 
   try {
     const verification = await jwt.verify(token, key);
+    console.log(verification);
     if (verification) {
       const hash = await bcrypt.hash(password, saltRounds);
-      await client.query('UPDATE users SET password_hash = $1 WHERE user_id = $2', [hash, user_id]);
+      await client.query('UPDATE users SET password_hash = $1 WHERE user_id = $2', [hash, id]);
     }
   } catch (error) {
     throw new Error('Invalid or expired token');
